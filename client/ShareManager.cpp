@@ -420,12 +420,12 @@ MemoryInputStream* ShareManager::getTree(const string& virtualFile) const
 	
 	ByteVector buf;
 	tree.getLeafData(buf);
-    if (buf.empty())
-    {
-        dcassert(0);
-        return nullptr; // https://github.com/zipper9/blacklink/commit/250ec97eb7ff201875bec9a6cea37602a9f143e3
-    }
-    return new MemoryInputStream(&buf[0], buf.size());
+	if (buf.empty())
+	{
+		dcassert(0);
+		return nullptr; // https://github.com/zipper9/blacklink/commit/250ec97eb7ff201875bec9a6cea37602a9f143e3
+	}
+	return new MemoryInputStream(&buf[0], buf.size());
 }
 
 void ShareManager::getFileInfo(AdcCommand& cmd, const string& aFile)
@@ -908,7 +908,7 @@ void ShareManager::addDirectory(const string& realPath, const string& virtualNam
 		throw ShareException(STRING(NO_DIRECTORY_SPECIFIED), realPath);
 	}
 	
-	if (!File::isExist(realPath)) // [5] https://www.box.net/shared/406c1493be1501a9ea61
+	if (!File::isExist(realPath))
 	{
 		throw ShareException(STRING(DIRECTORY_NOT_EXIST), realPath);
 	}
@@ -925,7 +925,7 @@ void ShareManager::addDirectory(const string& realPath, const string& virtualNam
 		throw ShareException(STRING(DIRECTORY_IS_SYSTEM), l_realPathWoPS);
 	}
 	
-	if (!checkVirtual(l_realPathWoPS))  // [5] https://www.box.net/shared/a877c0d7ef9f93b93c55  TODO - Запретить выброс исключений из мастера или гасить их в нем.
+	if (!checkVirtual(l_realPathWoPS)) 
 	{
 		throw ShareException(STRING(DIRECTORY_IS_VIRTUAL), l_realPathWoPS);
 	}
@@ -943,7 +943,7 @@ void ShareManager::addDirectory(const string& realPath, const string& virtualNam
 			string l_error;
 			l_error.resize(FULL_MAX_PATH);
 			_snprintf(&l_error[0], l_error.size(), CSTRING(CHECK_FORBIDDEN_DIR), realPath.c_str(), g_forbiddenPaths[i].m_descr);
-			throw ShareException(l_error, realPath); // [14] https://www.box.net/shared/a7b3712835bebeea8a46
+			throw ShareException(l_error, realPath);
 		}
 	}
 #endif
@@ -1839,7 +1839,7 @@ void ShareManager::generateXmlList()
 					
 					for (auto i = g_list_directories.cbegin(); i != g_list_directories.cend(); ++i)
 					{
-						(*i)->toXmlL(newXmlFile, indent, tmp2, true); // https://www.box.net/shared/e9d04cfcc59d4a4aaba7
+						(*i)->toXmlL(newXmlFile, indent, tmp2, true);
 					}
 				}
 				l_creation_log.step("write dir. done");
@@ -2051,9 +2051,8 @@ void ShareManager::Directory::toXmlL(OutputStream& xmlFile, string& p_indent, st
 			i->second->toXmlL(xmlFile, p_indent, tmp2, fullList);
 		}
 		
-		filesToXmlL(xmlFile, p_indent, tmp2); // [?] https://www.box.net/shared/39f69aa184eea69d2087
+		filesToXmlL(xmlFile, p_indent, tmp2);
 		
-		// dcassert(p_indent.length() > 1);
 		if (p_indent.length() > 1)
 		{
 			p_indent.erase(p_indent.length() - 1);

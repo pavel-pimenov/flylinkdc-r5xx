@@ -783,7 +783,7 @@
     <ClCompile Include="windows\InputBox.cpp" />
     <ClCompile Include="windows\IntegrationPage.cpp" />
     <ClCompile Include="windows\IntPreviewPage.cpp" />
-    <ClCompile Include="windows\iTunesCOMInterface_i.c">
+    <ClCompile Include="windows\iTunesCOMInterface.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">

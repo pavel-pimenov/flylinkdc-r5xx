@@ -130,8 +130,6 @@ int TimerManager::run()
 uint64_t TimerManager::getTick()
 {
 	return (microsec_clock::universal_time() - g_start).total_milliseconds();
-	// [2] https://www.box.net/shared/d5b52c09bf8af16676a4 https://www.box.net/shared/02663109fbecb2d2a18d
-	// boost::throw_exception(std::runtime_error("could not convert calendar time to UTC time"));
 }
 
 /**

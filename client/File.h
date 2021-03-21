@@ -49,7 +49,7 @@ class File : public IOStream
 		}
 		File(const tstring& aFileName, int access, int mode, bool isAbsolutePath = true)
 		{
-			init(aFileName, access, mode, isAbsolutePath); // [1] https://www.box.net/shared/75247d259e1ee4eab670
+			init(aFileName, access, mode, isAbsolutePath);
 		}
 		File(const string& aFileName, int access, int mode, bool isAbsolutePath = true)
 		{

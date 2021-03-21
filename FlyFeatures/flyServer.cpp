@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2017 FlylinkDC++ Team http://flylinkdc.com
+ * Copyright (C) 2011-2021 FlylinkDC++ Team http://flylinkdc.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,11 @@
 #include "ZenLib/ZtringListList.h"
 
 #ifndef _DEBUG
-#include "../doctor-dump/CrashRpt.h"
+#ifdef _WIN64
+#include "../doctor-dump-x64/CrashRpt.h"
+#else
+#include "../doctor-dump-x86/CrashRpt.h"
+#endif
 #else
 #include <fstream>
 #endif
@@ -182,7 +186,7 @@ const std::vector<CServerItem> CFlyServerConfig::getMirrorTestPortServerArray()
 	dcassert(!g_mirror_test_port_servers.empty() || !g_local_test_server.getIp().empty());
 	if (g_mirror_test_port_servers.empty())
 	{
-		// Если определен локальны тест-сервер - кидаемся на него
+		// Если определен локальный тест-сервер - используем на него
 		if (!g_local_test_server.getIp().empty())
 		{
 			g_mirror_test_port_servers.push_back(g_local_test_server);

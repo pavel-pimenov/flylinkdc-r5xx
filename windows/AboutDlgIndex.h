@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2019 FlylinkDC++ Team
+ * Copyright (C) 2016-2021 FlylinkDC++ Team
  */
 
 #if !defined(ABOUT_DLG_INDEX_H)

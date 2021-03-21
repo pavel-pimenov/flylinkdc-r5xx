@@ -63,7 +63,7 @@ class intrusive_ptr_base
 		{
 			if (--p->m_ref == 0)
 			{
-				delete static_cast<T*>(p); // [2] https://www.box.net/shared/307aa981b9cef05fc096
+				delete static_cast<T*>(p);
 			}
 		}
 		

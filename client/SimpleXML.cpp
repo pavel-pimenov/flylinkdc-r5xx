@@ -202,7 +202,7 @@ bool SimpleXML::findChild(const string& aName) noexcept
 		
 	while (currentChild != current->children.end())
 	{
-		if ((*currentChild)->name == aName) // https://www.box.net/shared/8622670a39f3c10523e0
+		if ((*currentChild)->name == aName)
 		{
 			found = true;
 			return true;

@@ -1508,10 +1508,7 @@ void SettingsManager::loadOtherSettings()
 
 bool SettingsManager::set(StrSetting key, const std::string& value)
 {
-	// [!] Please do not initialize l_auto because when you make changes, you can quietly break logic,
-	// and so though the compiler will issue a warning of a potentially uninitialized variable.
-	bool l_auto;
-	// [!]
+	bool l_auto = false;
 	
 	switch (key)
 	{
@@ -1568,6 +1565,7 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 		case TIME_STAMPS_FORMAT:
 		{
 			string l_new_value = value;
+			l_auto = false;
 			if (key == LOG_FORMAT_MAIN_CHAT || key == LOG_FORMAT_PRIVATE_CHAT)
 			{
 				if (value.find(" [extra]") != string::npos ||
@@ -1576,7 +1574,6 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 				        
 				   )
 				{
-					l_auto = false;
 					Text::replace_all(l_new_value, " [extra]", " %[extra]");
 					Text::replace_all(l_new_value, "S[extra]", "S %[extra]");
 					Text::replace_all(l_new_value, "%H:%M%:%S", "%H:%M:%S");
@@ -1614,21 +1611,14 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 			l_auto = false;
 		}
 		break;
+		case HIGH_PRIO_FILES:
+		case SKIPLIST_SHARE:
 		case PROT_USERS:
 		{
 			REPLACE_SPACES();
 		}
 		break;
 		case LOW_PRIO_FILES:
-		case HIGH_PRIO_FILES:
-		{
-			REPLACE_SPACES();
-		}
-		break;
-		case SKIPLIST_SHARE:
-		{
-			REPLACE_SPACES();
-		}
 		break;
 		case NICK:
 			REDUCE_LENGHT(49);

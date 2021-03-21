@@ -646,7 +646,7 @@ HTREEITEM QueueFrame::addDirectory(const string& dir, bool isFileList /* = false
 			if (next != m_fileLists)
 			{
 				const string& n = getDir(next);
-				if (!n.empty() && strnicmp(n.c_str() + i, dir.c_str() + i, n.length() - i) == 0) // i = 56 https://www.box.net/shared/3571b0c47c1a8360aec0  n = {npos=4294967295 } https://www.box.net/shared/487b71099375c9313d2a
+				if (!n.empty() && strnicmp(n.c_str() + i, dir.c_str() + i, n.length() - i) == 0) 
 				{
 					// Found a part, we assume it's the best one we can find...
 					i = n.length();

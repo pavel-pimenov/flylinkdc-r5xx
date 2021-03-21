@@ -386,14 +386,14 @@ int Socket::getSocketOptInt(int p_option) const
 {
 	int l_val = 0;
 	socklen_t l_len = sizeof(l_val);
-	check(::getsockopt(m_sock, SOL_SOCKET, p_option, (char*)&l_val, &l_len)); // [2] https://www.box.net/shared/3ad49dfa7f44028a7467
+	check(::getsockopt(m_sock, SOL_SOCKET, p_option, (char*)&l_val, &l_len));
 	return l_val;
 }
 void Socket::setSocketOpt(int option, int val)
 {
 	dcassert(val > 0);
 	int len = sizeof(val); // x64 - x86 int разный размер
-	check(::setsockopt(m_sock, SOL_SOCKET, option, (char*)&val, len)); // [2] https://www.box.net/shared/57976d5de875f5b33516
+	check(::setsockopt(m_sock, SOL_SOCKET, option, (char*)&val, len));
 }
 
 int Socket::read(void* aBuffer, int aBufLen)
@@ -561,9 +561,9 @@ int Socket::write(const void* aBuffer, int aLen)
 		}
 #endif
 		sent = ::send(m_sock, (const char*)aBuffer, aLen, 0);
-		// adguard.dll //[3] https://www.box.net/shared/cb7ec34c8cfac4b0b4a7
+		// adguard.dll
 		// dng.dll
-		// NetchartFilter.dll!100168ab() //[2] https://www.box.net/shared/007b54beb27139189267
+		// NetchartFilter.dll!100168ab()
 	}
 	while (sent < 0 && getLastError() == EINTR);
 	

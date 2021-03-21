@@ -46,7 +46,11 @@
 #endif
 
 #ifndef _DEBUG
-#include "../doctor-dump/CrashRpt.h"
+#ifdef _WIN64
+#include "../doctor-dump-x64/CrashRpt.h"
+#else
+#include "../doctor-dump-x86/CrashRpt.h"
+#endif
 #endif // _DEBUG
 
 void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, GUIINITPROC pGuiInitProc, void *pGuiParam)

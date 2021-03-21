@@ -2092,7 +2092,7 @@ LRESULT DirectoryListingFrame::onCustomDrawTree(int /*idCtrl*/, LPNMHDR pnmh, BO
 
 DirectoryListingFrame::ItemInfo::ItemInfo(DirectoryListing::File* f) : type(FILE), m_file(f), m_icon_index(-1)
 {
-	columns[COLUMN_FILENAME] = Text::toT(f->getName()); // https://www.box.net/shared/972al1nj5hngajrcgvnt
+	columns[COLUMN_FILENAME] = Text::toT(f->getName());
 	columns[COLUMN_TYPE] = Util::getFileExt(columns[COLUMN_FILENAME]);
 	if (!columns[COLUMN_TYPE].empty() && columns[COLUMN_TYPE][0] == '.')
 		columns[COLUMN_TYPE].erase(0, 1);

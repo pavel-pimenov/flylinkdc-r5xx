@@ -108,7 +108,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
 		MESSAGE_HANDLER(WM_MENUSELECT, OnMenuSelect)
 #ifdef IRAINMAN_INCLUDE_SMILE
-		MESSAGE_HANDLER(WM_ANIM_CHANGE_FRAME, OnAnimChangeFrame) // [2] https://www.box.net/shared/2ab8bc29f2f90df352ca
+		MESSAGE_HANDLER(WM_ANIM_CHANGE_FRAME, OnAnimChangeFrame)
 #endif
 		MESSAGE_HANDLER(WM_IDR_TOTALRESULT_WAIT, OnUpdateTotalResult)
 		MESSAGE_HANDLER(WM_IDR_RESULT_RECEIVED, OnUpdateResultReceive)

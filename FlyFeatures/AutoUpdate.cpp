@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2017 FlylinkDC++ Team http://flylinkdc.com
+ * Copyright (C) 2011-2021 FlylinkDC++ Team http://flylinkdc.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -496,7 +496,7 @@ void AutoUpdate::startUpdateThisThread()
 										try 
 										{
 											{
-												File f(flagName, File::WRITE, File::CREATE | File::TRUNCATE); // [1] https://www.box.net/shared/75247d259e1ee4eab670
+												File f(flagName, File::WRITE, File::CREATE | File::TRUNCATE);
 												f.close();
 											}
 											SET_SETTING(AUTOUPDATE_PATH_WITH_UPDATE, g_tempFolder);

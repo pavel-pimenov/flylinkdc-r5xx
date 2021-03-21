@@ -22,7 +22,7 @@
 
 //---------------------------------------------------------------------------
 #include "MediaInfo/Multiple/File_Swf.h"
-#include <zlib-ng.h>
+#include <zlib.h>
 using namespace ZenLib;
 //---------------------------------------------------------------------------
 
@@ -657,12 +657,12 @@ bool File_Swf::Decompress()
     }
 
     //Sizes
-    size_t Source_Size=(unsigned long)(File_Size-8);
-    size_t Dest_Size=(unsigned long)(FileLength-8);
+    auto Source_Size=(unsigned long)(File_Size-8);
+    auto Dest_Size=(unsigned long)(FileLength-8);
 
     //Uncompressing
     int8u* Dest=new int8u[Dest_Size];
-    if (zng_uncompress((Bytef*)Dest, &Dest_Size, (const Bytef*)Buffer+Buffer_Offset+8, Source_Size)<0)
+    if (uncompress((Bytef*)Dest, &Dest_Size, (const Bytef*)Buffer+Buffer_Offset+8, Source_Size)<0)
     {
         delete[] Dest; //Dest=NULL
         Trusted_IsNot("Error while decompressing");

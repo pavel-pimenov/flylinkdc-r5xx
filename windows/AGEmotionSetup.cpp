@@ -44,7 +44,7 @@ CAGEmotion::CAGEmotion() :
 //======================================================================================================================
 CAGEmotion::~CAGEmotion()
 {
-	safe_release(m_pGifImage); // [10] https://www.box.net/shared/9uhvka1sqbu5344cbwm3
+	safe_release(m_pGifImage); 
 }
 //======================================================================================================================
 string CAGEmotion::UnzipEmotions(const string& p_file_name)
@@ -110,7 +110,7 @@ void CAGEmotion::initEmotionBmp()
 					HBITMAP poPrevSourceBmp = (HBITMAP) SelectObject(oTestDC, m_EmotionBmpHandle);
 					COLORREF clrTransparent = GetPixel(oTestDC, 0, 0);
 					SelectObject(oTestDC, poPrevSourceBmp);
-					const int nImagePos = g_pImagesList->Add(m_EmotionBmpHandle, clrTransparent); // [1] https://www.box.net/shared/dc4bb2f4d42173f47f62
+					const int nImagePos = g_pImagesList->Add(m_EmotionBmpHandle, clrTransparent); 
 					setImagePos(nImagePos);
 					DeleteObject(m_EmotionBmpHandle); // TODO не совсем понятно почему тут удаляется?
 					m_EmotionBmpHandle = nullptr;

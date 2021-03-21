@@ -352,7 +352,7 @@ class Socket
 					throw SocketException(error);
 				}
 			}
-			return ret; // [12] Wizard https://www.box.net/shared/d8203c21d9e943b71cf5
+			return ret;
 		}
 		static void check(int ret, bool blockOk = false)
 		{

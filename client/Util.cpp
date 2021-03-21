@@ -1712,7 +1712,7 @@ string Util::formatParams(const string& msg, const StringMap& params, bool filte
 		l_find_alcohol = true;
 		if (c < result.length() - 1)
 		{
-			if (g_goodchars.find(result[c + 1], 0) == string::npos) // [6] https://www.box.net/shared/68bcb4f96c1b5c39f12d
+			if (g_goodchars.find(result[c + 1], 0) == string::npos)
 			{
 				result.replace(c, 1, "%%");
 				c++;
@@ -2310,9 +2310,7 @@ TCHAR* Util::strstr(const TCHAR *str1, const TCHAR *str2, int *pnIdxFound)
 	
 int Util::DefaultSort(const wchar_t *a, const wchar_t *b, bool noCase /*=  true*/)
 {
-	{
 		return noCase ? lstrcmpi(a, b) : lstrcmp(a, b);
-	}
 }
 void Util::setLimiter(bool aLimiter)
 {

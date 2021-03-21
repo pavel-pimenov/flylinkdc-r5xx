@@ -1,5 +1,5 @@
 /* Include the default amount of outcome
-(C) 2018-2020 Niall Douglas <http://www.nedproductions.biz/> (4 commits)
+(C) 2018-2021 Niall Douglas <http://www.nedproductions.biz/> (4 commits)
 File Created: Mar 2018
 
 
@@ -28,7 +28,7 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 */
 
-#if defined(__cpp_modules) && !defined(GENERATING_OUTCOME_MODULE_INTERFACE)
+#if defined(__cpp_modules) && !defined(GENERATING_OUTCOME_MODULE_INTERFACE) && !BOOST_OUTCOME_DISABLE_BOOST_OUTCOME_C_MODULES
 import outcome_v2_0;
 #else
 #include "outcome/coroutine_support.hpp"

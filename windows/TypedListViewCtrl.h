@@ -252,7 +252,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 						if (1) //l_column_info.m_is_owner_draw == false || l_column_info.m_is_first_set == false) // TODO - на OwnerDraw пропускать вызов getText но если не делать SetText - глючит инфа в подсказке на юзере
 						{
 							const auto l_index = m_columnIndexes[l_sub_item];
-							const auto& l_text = ((T*)di->item.lParam)->getText(l_index);
+							const auto l_text = ((T*)di->item.lParam)->getText(l_index);
 							setText(di->item, l_text);
 							//l_column_info.m_is_first_set = true;
 							//dcdebug("!!!!!!!!!!! OWNER_DRAW - onGetDispInfo l_index = %d setText \n", int(l_sub_item));
@@ -969,7 +969,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		static int CALLBACK compareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 		{
 			thisClass* t = (thisClass*)lParamSort;
-			int result = T::compareItems((T*)lParam1, (T*)lParam2, t->getRealSortColumn()); // https://www.box.net/shared/043aea731a61c46047fe
+			int result = T::compareItems((T*)lParam1, (T*)lParam2, t->getRealSortColumn()); 
 			return (t->sortAscending ? result : -result);
 		}
 		
@@ -1509,7 +1509,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 			{
 				mid = (low + high) / 2;
 				b = getItemData(mid);
-				comp = compareItems(a, b, static_cast<uint8_t>(getSortColumn()));  // https://www.box.net/shared/9411c0b86a2a66b073af
+				comp = compareItems(a, b, static_cast<uint8_t>(getSortColumn())); 
 				
 				if (!isAscending())
 					comp = -comp;
@@ -2003,7 +2003,7 @@ class TypedTreeListViewCtrlSafe : public TypedListViewCtrl<T, ctrlId>
 			{
 				mid = (low + high) / 2;
 				b = getItemData(mid);
-				comp = compareItems(a, b, static_cast<uint8_t>(getSortColumn()));  // https://www.box.net/shared/9411c0b86a2a66b073af
+				comp = compareItems(a, b, static_cast<uint8_t>(getSortColumn())); 
 				
 				if (!isAscending())
 					comp = -comp;

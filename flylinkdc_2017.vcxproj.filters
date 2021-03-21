@@ -214,7 +214,7 @@
     <ClCompile Include="windows\UserListColours.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="windows\iTunesCOMInterface_i.c">
+    <ClCompile Include="windows\iTunesCOMInterface.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="windows\ProxyPage.cpp">

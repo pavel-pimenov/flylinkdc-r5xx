@@ -458,15 +458,15 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 					const ItemInfo* ii = ctrlTransfers.getItemData(i);
 					if (ii)
 					{
-					bCustomMenu = true;
-					
+						bCustomMenu = true;
+						
 						reinitUserMenu(ii->m_hintedUser.user, ii->m_hintedUser.hint);
-					
-					if (getSelectedUser())
-					{
-						appendUcMenu(usercmdsMenu, UserCommand::CONTEXT_USER, ClientManager::getHubs(getSelectedUser()->getCID(), getSelectedHint()));
+						
+						if (getSelectedUser())
+						{
+							appendUcMenu(usercmdsMenu, UserCommand::CONTEXT_USER, ClientManager::getHubs(getSelectedUser()->getCID(), getSelectedHint()));
+						}
 					}
-				}
 				}
 				
 				appendAndActivateUserItems(transferMenu);
@@ -1113,41 +1113,41 @@ LRESULT TransferView::onDoubleClickTransfers(int /*idCtrl*/, LPNMHDR pnmh, BOOL&
 		ItemInfo* i = ctrlTransfers.getItemData(item->iItem);
 		if (i)
 		{
-		const vector<ItemInfo*>& children = ctrlTransfers.findChildren(i->getGroupCond());
-		if (!i->m_is_torrent)
-		{
-			if (i->parent != nullptr || children.size() <= 1)
+			const vector<ItemInfo*>& children = ctrlTransfers.findChildren(i->getGroupCond());
+			if (!i->m_is_torrent)
 			{
-				switch (SETTING(TRANSFERLIST_DBLCLICK))
+				if (i->parent != nullptr || children.size() <= 1)
 				{
-					case 0:
-						i->pm(i->m_hintedUser.hint);
-						break;
-					case 1:
-						i->getList();
-						break;
-					case 2:
-						i->matchQueue();
-					case 3:
-						i->grantSlotPeriod(i->m_hintedUser.hint, 600);
-						break;
-					case 4:
-						i->addFav();
-						break;
-					case 5:
-					
-						i->m_statusString = TSTRING(CONNECTING_FORCED);
-						ctrlTransfers.updateItem(i);
-						bool l_is_active_client;
-						ClientManager::getInstance()->connect(i->m_hintedUser, Util::toString(Util::rand()), false, l_is_active_client);
-						break;
-					case 6:
-						i->browseList();
-						break;
+					switch (SETTING(TRANSFERLIST_DBLCLICK))
+					{
+						case 0:
+							i->pm(i->m_hintedUser.hint);
+							break;
+						case 1:
+							i->getList();
+							break;
+						case 2:
+							i->matchQueue();
+						case 3:
+							i->grantSlotPeriod(i->m_hintedUser.hint, 600);
+							break;
+						case 4:
+							i->addFav();
+							break;
+						case 5:
+						
+							i->m_statusString = TSTRING(CONNECTING_FORCED);
+							ctrlTransfers.updateItem(i);
+							bool l_is_active_client;
+							ClientManager::getInstance()->connect(i->m_hintedUser, Util::toString(Util::rand()), false, l_is_active_client);
+							break;
+						case 6:
+							i->browseList();
+							break;
+					}
 				}
 			}
 		}
-	}
 	}
 	return 0;
 }
@@ -1589,7 +1589,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 				dcassert(0);
 				break;
 		};
-		delete i->second;  // [1] https://www.box.net/shared/307aa981b9cef05fc096
+		delete i->second;
 	}
 	if (m_is_need_resort && !MainFrame::isAppMinimized())
 	{
@@ -2158,7 +2158,6 @@ void TransferView::on(DownloadManagerListener::Status, const UserConnection* p_c
 {
 	if (!ClientManager::isBeforeShutdown())
 	{
-		// dcassert(const_cast<UserConnection*>(uc)->getDownload()); // TODO при окончании закачки это поле уже пустое https://www.box.net/shared/4cknwlue3njzksmciu63
 		UpdateInfo* ui = new UpdateInfo(p_conn->getHintedUser(), true);
 		ui->setStatus(ItemInfo::STATUS_WAITING);
 		ui->setStatusString(Text::toT(aReason));
@@ -2387,7 +2386,7 @@ LRESULT TransferView::onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hW
 		const ItemInfo *ii = ctrlTransfers.getItemData(i);
 		if (!ii)
 			continue;
-		
+			
 		const string target = Text::fromT(ii->m_target);
 		if (ii->download)
 		{
@@ -2451,7 +2450,7 @@ LRESULT TransferView::onDisconnectAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
 		const ItemInfo* ii = ctrlTransfers.getItemData(i);
 		if (!ii)
 			continue;
-		
+			
 		const vector<ItemInfo*>& children = ctrlTransfers.findChildren(ii->getGroupCond());
 		for (auto j = children.cbegin(); j != children.cend(); ++j)
 		{
@@ -2840,7 +2839,7 @@ LRESULT TransferView::onRemoveAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 {
 	UINT checkState = BOOLSETTING(CONFIRM_DELETE) ? BST_UNCHECKED : BST_CHECKED;
 	if (checkState == BST_CHECKED || ::MessageBox(NULL, CTSTRING(REALLY_REMOVE), getFlylinkDCAppCaptionWithVersionT().c_str(), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES)
-		ctrlTransfers.forEachSelected(&ItemInfo::removeAll); // [6] https://www.box.net/shared/4eed8e2e275210b6b654
+		ctrlTransfers.forEachSelected(&ItemInfo::removeAll); 
 	// Let's update the setting unchecked box means we bug user again...
 	SET_SETTING(CONFIRM_DELETE, checkState != BST_CHECKED);
 	return 0;

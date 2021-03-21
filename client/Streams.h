@@ -266,7 +266,7 @@ class BufferedOutputStream : public OutputStream
 					size_t n = std::min(m_buf_size - m_pos, len);
 					memcpy(&m_buf[m_pos], b, n);
 					b += n;
-					m_pos += n; /// [1] ? https://www.box.net/shared/2a9b903842d575efa031
+					m_pos += n;
 					len -= n;
 					dcassert(m_buf_size != 0);
 					if (m_pos == m_buf_size)

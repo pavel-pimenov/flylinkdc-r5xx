@@ -3937,7 +3937,7 @@ __int64 CFlylinkDBManager::get_dic_idL(const string& p_name, const eTypeDIC p_DI
 		if (!p_create)
 		{
 			auto i =  l_cache_dic.find(p_name);
-			if (i != l_cache_dic.end()) // [1] https://www.box.net/shared/8f01665fe1a5d584021f
+			if (i != l_cache_dic.end())
 				return i->second;
 			else
 				return find_dic_idL(p_name, p_DIC, true);
@@ -5046,7 +5046,7 @@ CFlylinkDBManager::FileStatus CFlylinkDBManager::get_status_file(const TTHValue&
 #ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
 void CFlylinkDBManager::log(const int p_area, const StringMap& p_params)
 {
-	CFlyLock(m_cs); // [2] https://www.box.net/shared/9e63916273d37e5b2932
+	CFlyLock(m_cs);
 	try
 	{
 		m_insert_fly_message.init(m_flySQLiteDB,

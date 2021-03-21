@@ -128,7 +128,7 @@ bool CGDIImage::SelectActiveFrame(DWORD dwFrame)
 	{
 		static const GUID g_Guid = Gdiplus::FrameDimensionTime;
 		if (m_pImage) // crash https://drdump.com/DumpGroup.aspx?DumpGroupID=230505&Login=guest
-			m_pImage->SelectActiveFrame(&g_Guid, dwFrame); // [1] https://www.box.net/shared/x4tgntvw818gzd274nek
+			m_pImage->SelectActiveFrame(&g_Guid, dwFrame); 
 		return true;
 		/* [!]TODO
 		if(m_pImage)
@@ -407,7 +407,7 @@ LONG CGDIImage::Release()
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
         GDIImageDeath(this);
 #endif
-        delete this; // [39] https://www.box.net/shared/05cc9b528dc37cc78229
+        delete this; 
     }
 
     return lRef;

@@ -275,7 +275,7 @@ void NmdcHub::putUser(const string& aNick)
 	
 	if (!ou->getUser()->getCID().isZero())
 	{
-		ClientManager::getInstance()->putOffline(ou); // [2] https://www.box.net/shared/7b796492a460fe528961
+		ClientManager::getInstance()->putOffline(ou);
 	}
 	
 	fly_fire2(ClientListener::UserRemoved(), this, ou);
@@ -1772,13 +1772,6 @@ void NmdcHub::onLine(const string& aLine)
 	{
 		bMyInfoCommand = true;
 		myInfoParse(param);
-#ifdef _DEBUG
-		const string l_admin = "Админ";
-		if (param.find(l_admin) != string::npos)
-		{
-			bMyInfoCommand = true;
-		}
-#endif
 	}
 #ifdef FLYLINKDC_USE_EXT_JSON
 	else if (cmd == "ExtJSON")

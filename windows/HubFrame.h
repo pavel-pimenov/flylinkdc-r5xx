@@ -334,7 +334,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		CtrlUsers* m_ctrlUsers;
 		void createCtrlUsers();
 		
-		tstring m_lastUserName; // SSA_SAVE_LAST_NICK_MACROS
+		tstring m_lastUserName;
 		
 		bool m_showUsers;
 		bool m_showUsersStore;

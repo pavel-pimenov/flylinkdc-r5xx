@@ -181,7 +181,7 @@ void LogManager::flush_all_log()
 		{
 			flush_file(i->first, i->second);
 		}
-		catch (const FileException& )
+		catch (const FileException&)
 		{
 			const auto l_code = GetLastError();
 			if (l_code == 3) // ERROR_PATH_NOT_FOUND
@@ -191,7 +191,7 @@ void LogManager::flush_all_log()
 					File::ensureDirectory(i->first);
 					flush_file(i->first, i->second);
 				}
-				catch (const FileException& )
+				catch (const FileException&)
 				{
 					dcassert(0);
 				}
@@ -339,7 +339,7 @@ void LogManager::message(const string& p_msg, bool p_only_file /*= false */)
 	{
 		StringMap params;
 		params["message"] = p_msg;
-		log(SYSTEM, params, p_only_file); // [1] https://www.box.net/shared/9e63916273d37e5b2932
+		log(SYSTEM, params, p_only_file);
 	}
 	speak_status_message(p_msg);
 }

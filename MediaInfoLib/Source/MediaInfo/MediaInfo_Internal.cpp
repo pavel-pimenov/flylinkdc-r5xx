@@ -46,7 +46,7 @@
 #include "MediaInfo/Multiple/File_Dxw.h"
 #ifdef MEDIAINFO_COMPRESS
     #include "ThirdParty/base64/base64.h"
-    #include "zlib-ng.h"
+    #include "zlib.h"
 #endif //MEDIAINFO_COMPRESS
 #include <cmath>
 #ifdef MEDIAINFO_DEBUG_WARNING_GET
@@ -1424,13 +1424,13 @@ std::bitset<32> MediaInfo_Internal::Open_Buffer_Continue (const int8u* ToAdd, si
             }
             if (zlib)
             {
-                size_t Output_Size_Max = ToAdd_Size;
+                auto Output_Size_Max = ToAdd_Size;
                 while (Output_Size_Max)
                 {
                     Output_Size_Max *=16;
                     int8u* Output = new int8u[Output_Size_Max];
-                    size_t Output_Size = Output_Size_Max;
-                    if (zng_uncompress((Bytef*)Output, &Output_Size, (const Bytef*)ToAdd, (uLong)ToAdd_Size)>=0)
+                    uLongf Output_Size = Output_Size_Max;
+                    if (uncompress((Bytef*)Output, &Output_Size, (const Bytef*)ToAdd, (uLong)ToAdd_Size)>=0)
                     {
                         ToAdd=Output;
                         ToAdd_Size=Output_Size;

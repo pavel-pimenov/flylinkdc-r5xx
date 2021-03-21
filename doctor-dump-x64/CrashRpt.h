@@ -1,4 +1,4 @@
-// Copyright (c) 2014, Idol Software, Inc.
+// Copyright (c) 2018, Idol Software, Inc.
 // All rights reserved.
 //
 // This file is part of Doctor Dump SDK.
@@ -17,12 +17,15 @@
 // ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 // USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Project web site http://drdump.com
+// Project web site https://drdump.com
 
 #ifndef __CRASH_RPT_H__
 #define __CRASH_RPT_H__
 
 #include <windows.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <exception>
 
 /** @file */
 
@@ -48,6 +51,7 @@
 #		endif // !_DEBUG
 #endif // CRASHRPT_ENABLE_RELEASE_ASSERTS
 
+//! This is namespace crash_rpt
 namespace crash_rpt {
 
 namespace {
@@ -98,6 +102,7 @@ typedef CrashProcessingCallbackResult (CALLBACK *PFNCRASHPROCESSINGCALLBACK)(
 	);
 
 
+//! Optional custom data collection after the crash in context of sendrpt.exe process.
 namespace custom_data_collection {
 
 //! Result of custom data collection.
@@ -148,7 +153,7 @@ struct IDataBag
         LPCWSTR value                       //!< [in] value for the key.
         ) = 0;
 
-	//! You may remove any key that was added previously to crash report by \a AddUserInfoToReport.
+		//! You may remove any key that was added previously to crash report by \ref crash_rpt::CrashRpt::AddUserInfoToReport.
 	//! \return If the function succeeds, the return value is \b true.
 	virtual bool RemoveUserInfoFromReport(
 		LPCWSTR key                        //!< [in] key string that will be removed from the report.
@@ -164,14 +169,38 @@ typedef Result (CALLBACK *PFNCUSTOMDATACOLLECTIONCALLBACK)(
 //! Contains data for optional custom data collection after the crash in context of sendrpt.exe process.
 struct Settings
 {
-	DWORD	SettingsSize;					//!< Size of this structure. Should be set to sizeof(CustomDataCollectionSettings).
+		DWORD	SettingsSize;					//!< Size of this structure. Should be set to sizeof(crash_rpt::custom_data_collection::Settings).
 	LPCWSTR	CollectionLibraryPath;			//!< Path to dll where collection function exported from.
 	LPCSTR	CollectionFunctionName;			//!< Name of collection function exported from \ref CollectionLibraryPath. It should have \ref crash_rpt::custom_data_collection::PFNCUSTOMDATACOLLECTIONCALLBACK prototype.
 	LPBYTE	UserData;						//!< Pointer to user-defined data buffer.
 	DWORD	UserDataSize;					//!< Size of \ref UserData buffer.
 };
 
-}
+} // namespace custom_data_collection
+
+//! This is namespace crash_rpt::crt_error_handlers
+namespace crt_error_handlers {
+
+	typedef void(__cdecl *_crt_signal_t)(int);
+	typedef _crt_signal_t(__cdecl *pfn_signal)(int sig, _crt_signal_t func);
+	typedef void(__cdecl* terminate_function)();
+	typedef terminate_function(__cdecl *pfn_set_terminate)(terminate_function);
+	typedef void(__cdecl* _invalid_parameter_handler)(wchar_t const*, wchar_t const*, wchar_t const*, unsigned int, uintptr_t);
+	typedef _invalid_parameter_handler(__cdecl *pfn_set_invalid_parameter_handler)(_invalid_parameter_handler);
+	typedef void(__cdecl* _purecall_handler)(void);
+	typedef _purecall_handler(__cdecl *pfn_set_purecall_handler)(_purecall_handler);
+
+	//! Setters for CRT error handlers.
+	struct Settings
+	{
+		DWORD								SettingsSize;				//!< Size of this structure. Should be set to sizeof(crash_rpt::crt_error_handlers::Settings).
+		pfn_signal							Signal;						//!< Address of signal function.
+		pfn_set_terminate					SetTerminate;				//!< Address of set_terminate function.
+		pfn_set_invalid_parameter_handler	SetInvalidParameterHandler;	//!< Address of _set_invalid_parameter_handler function.
+		pfn_set_purecall_handler			SetPureCallHandler;			//!< Address of _set_purecall_handler function.
+	};
+
+} // namespace crt_error_handlers
 
 //! Contains data that identifies your application.
 struct ApplicationInfo
@@ -188,7 +217,7 @@ struct ApplicationInfo
 
 //! \brief Contains crash handling behavior customization parameters. 
 //!
-//! Default values for all parameters is 0/FALSE.
+//! Default values for all parameters are 0/FALSE.
 struct HandlerSettings
 {
 	DWORD   HandlerSettingsSize;        //!< Size of this structure. Should be set to sizeof(HandlerSettings).
@@ -207,6 +236,8 @@ struct HandlerSettings
 	LPVOID CrashProcessingCallbackUserData; //!< User defined parameter for CrashProcessingCallback. Optional.
 	custom_data_collection::Settings* CustomDataCollectionSettings;
 										//!< Contains data for optional custom data collection after the crash in context of sendrpt.exe process.
+	crt_error_handlers::Settings* CrtErrorHandlersSettings;
+										//!< Contains setters for CRT error handlers. Set to NULL to use default handlers.
 };
 
 //! \brief To enable crash processing you should create an instance of this class.
@@ -353,26 +384,35 @@ public:
 		if (!m_InitCrashRpt)
 			return false;
 
+		crt_error_handlers::Settings crtErrorHandlersSettings;
+		memset(&crtErrorHandlersSettings, 0, sizeof(crtErrorHandlersSettings));
+		crtErrorHandlersSettings.SettingsSize = sizeof(crtErrorHandlersSettings);
+		crtErrorHandlersSettings.Signal = signal;
+		crtErrorHandlersSettings.SetTerminate = set_terminate;
+#if defined(_MSC_VER)
+		crtErrorHandlersSettings.SetInvalidParameterHandler = _set_invalid_parameter_handler;
+		crtErrorHandlersSettings.SetPureCallHandler = _set_purecall_handler;
+#endif
+
+		HandlerSettings defHandlerSettings;
+		memset(&defHandlerSettings, 0, sizeof(defHandlerSettings));
+		defHandlerSettings.HandlerSettingsSize = sizeof(defHandlerSettings);
+		defHandlerSettings.OpenProblemInBrowser = TRUE;
+		defHandlerSettings.CrtErrorHandlersSettings = &crtErrorHandlersSettings;
+
+		if (handlerSettings == NULL)
+	{
+			handlerSettings = &defHandlerSettings;
+		}
+		else if (handlerSettings->CrtErrorHandlersSettings == NULL)
+		{
+			handlerSettings->CrtErrorHandlersSettings = &crtErrorHandlersSettings;
+	}
+	
 		m_bWorking = m_InitCrashRpt(applicationInfo, handlerSettings, ownProcess) != FALSE;
 
 		return m_bWorking;
 	}
-
-	//! Initializes crash handler.
-	//! \return Return \b true if crash handling was enabled.
-	//! \warning This method is deprecated. Use \ref InitCrashRpt instead.
-	__declspec(deprecated)
-	bool InitCrashHandler(
-		ApplicationInfo* applicationInfo,	//!< [in] Pointer to the ApplicationInfo structure that identifies your application.
-		HandlerSettings* handlerSettings,	//!< [in] Pointer to the HandlerSettings structure that customizes crash handling behavior. This parameter can be \b NULL.
-		BOOL ownProcess = TRUE           	//!< [in] If you own the process your code running in set this option to \b TRUE. If don't (for example you write
-											//!<      a plugin to some external application) set this option to \b FALSE. In that case you need to explicitly
-											//!<      catch exceptions. See \ref SendReport for more information.
-		) throw()
-	{
-		return InitCrashRpt(applicationInfo, handlerSettings, ownProcess);
-	}
-	
 
 	//! Initializes crash handler.
 	//! \note You may call this function multiple times if some data has changed.
@@ -400,18 +440,13 @@ public:
 		if (!m_GetVersionFromApp(&appInfo))
 			appInfo.V[0] = 1;
 
-		HandlerSettings handlerSettings;
-		memset(&handlerSettings, 0, sizeof(handlerSettings));
-		handlerSettings.HandlerSettingsSize = sizeof(handlerSettings);
-		handlerSettings.OpenProblemInBrowser = TRUE;
-
-		return InitCrashRpt(&appInfo, &handlerSettings, ownProcess);
+		return InitCrashRpt(&appInfo, NULL, ownProcess);
 	}
 
-	//! \note This function is experimental and may not be available and may not be support by Doctor Dump in the future.
 	//! You may set custom information for your possible report.
 	//! This text will be available on Doctor Dump dumps page.
 	//! The text should not contain private information.
+	//! \warning This function is experimental and may not be available and may not be support by Doctor Dump in the future.
 	//! \return If the function succeeds, the return value is \b true.
 	bool SetCustomInfo(
 		LPCWSTR text                        //!< [in] custom info for the report. The text will be cut to 100 characters.
@@ -453,6 +488,9 @@ public:
 	//! You may add any file to crash report. This file will be read when crash appears and will be sent within the report.
 	//! Multiple files may be added. Filename of the file in the report may be changed to any name.
 	//! \return If the function succeeds, the return value is \b true.
+	//! \note The file should be accessible with \b GENERIC_READ access and \b FILE_SHARE_READ share mode.
+	//!       If your program uses this file with another access options (for example this is log file and it is open for writing)
+	//!       you should release the file in \ref crash_rpt::HandlerSettings::CrashProcessingCallback on #BeforeSendReport stage.
 	//! \note This function is thread safe.
 	bool AddFileToReport(
 		LPCWSTR path,						//!< [in] Path to the file, that will be added to the report.
@@ -662,9 +700,5 @@ private:
 };
 
 } // namespace crash_rpt
-
-__declspec(deprecated) typedef crash_rpt::CrashRpt CrashHandler; //!< Deprecated. Use crash_rpt::CrashRpt class instead.
-__declspec(deprecated) typedef crash_rpt::ApplicationInfo ApplicationInfo; //!< Deprecated. Use crash_rpt::ApplicationInfo class instead.
-__declspec(deprecated) typedef crash_rpt::HandlerSettings HandlerSettings; //!< Deprecated. Use crash_rpt::HandlerSettings class instead.
 
 #endif // __CRASH_RPT_H__

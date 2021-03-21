@@ -158,7 +158,7 @@ void fire(T0 && type, T1 && p1) noexcept
 			if (!is_listener_zombie(*i))
 			{
 #endif // IRAINMAN_USE_SIMPLE_SPEAKER
-		(*i)->on(std::forward<T0>(type), std::forward<T1>(p1)); // [2] https://www.box.net/shared/da9ee6ddd7ec801b1a86
+		(*i)->on(std::forward<T0>(type), std::forward<T1>(p1));
 #ifndef IRAINMAN_USE_SIMPLE_SPEAKER
 }
 }

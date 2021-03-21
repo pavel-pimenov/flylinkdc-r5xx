@@ -141,7 +141,7 @@ class MerkleTree
 				size_t n = std::min(size_t(BASE_BLOCK_SIZE), len - i);
 				Hasher h;
 				h.update(&zero, 1);
-				h.update(buf + i, n); // n=1024 [4] https://www.box.net/shared/248a073eee69128a3c7b
+				h.update(buf + i, n);
 				if ((int64_t)BASE_BLOCK_SIZE < blockSize)
 				{
 					blocks.emplace_back(MerkleBlock(MerkleValue(h.finalize()), BASE_BLOCK_SIZE));

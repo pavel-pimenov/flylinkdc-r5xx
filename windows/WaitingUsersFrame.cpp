@@ -339,7 +339,7 @@ void WaitingUsersFrame::RemoveUser(const UserPtr& aUser)
 	
 	for (auto i = UQFUsers.cbegin(); i != UQFUsers.cend(); ++i)
 	{
-		if (*i == aUser) // [1] https://www.box.net/shared/95ab392bc53d0452debc
+		if (*i == aUser) 
 		{
 			UQFUsers.erase(i);
 			break;

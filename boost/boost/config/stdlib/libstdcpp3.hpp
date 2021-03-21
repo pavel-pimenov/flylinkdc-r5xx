@@ -94,6 +94,20 @@
 #endif
 #endif
 
+#if defined(__has_include)
+#if defined(BOOST_HAS_HASH)
+#if !__has_include(BOOST_HASH_SET_HEADER)
+#undef BOOST_HAS_HAS
+#undef BOOST_HAS_SET_HEADER
+#undef BOOST_HAS_MAP_HEADER
+#endif
+#if !__has_include(BOOST_SLIST_HEADER)
+#undef BOOST_HAS_SLIST
+#undef BOOST_HAS_SLIST_HEADER
+#endif
+#endif
+#endif
+
 //
 // Decide whether we have C++11 support turned on:
 //
@@ -216,6 +230,7 @@ extern "C" char *gets (char *__s);
 #     endif
 #  elif !_GLIBCXX_USE_DEPRECATED
 #     define BOOST_NO_AUTO_PTR
+#     define BOOST_NO_CXX98_BINDERS
 #  endif
 #endif
 
@@ -319,8 +334,25 @@ extern "C" char *gets (char *__s);
 #elif __cplusplus <= 201103
 #  define BOOST_NO_CXX14_HDR_SHARED_MUTEX
 #endif
+//
+// <execution> has a dependency to Intel's thread building blocks:
+// unless these are installed seperately, including <execution> leads
+// to inscrutable errors inside libstdc++'s own headers.
+//
+#if (BOOST_LIBSTDCXX_VERSION < 100100)
+#if !__has_include(<tbb/tbb.h>)
+#define BOOST_NO_CXX17_HDR_EXECUTION
+#endif
+#endif
 #elif __cplusplus < 201402 || (BOOST_LIBSTDCXX_VERSION < 40900) || !defined(BOOST_LIBSTDCXX11)
 #  define BOOST_NO_CXX14_HDR_SHARED_MUTEX
+#endif
+
+#if BOOST_LIBSTDCXX_VERSION < 100100
+//
+// The header may be present but is incomplete:
+//
+#  define BOOST_NO_CXX17_HDR_CHARCONV
 #endif
 
 //

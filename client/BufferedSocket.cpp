@@ -199,7 +199,7 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 			}
 			else
 			{
-				sock->connect(aAddr, aPort); // https://www.box.net/shared/l08o2vdekthrrp319m8n + http://www.flylinkdc.ru/2012/10/ashampoo-firewall.html
+				sock->connect(aAddr, aPort); // http://www.flylinkdc.ru/2012/10/ashampoo-firewall.html
 			}
 			
 			while (true)
@@ -1120,7 +1120,7 @@ void BufferedSocket::write(const char* aBuf, size_t aLen)
 	{
 		ShareManager::tryFixBadAlloc();
 	}
-	m_writeBuf.insert(m_writeBuf.end(), aBuf, aBuf + aLen); // [1] std::bad_alloc nomem https://www.box.net/shared/nmobw6wofukhcdr7lx4h
+	m_writeBuf.insert(m_writeBuf.end(), aBuf, aBuf + aLen); // [1] std::bad_alloc
 }
 
 void BufferedSocket::threadSendData()
@@ -1161,7 +1161,7 @@ void BufferedSocket::threadSendData()
 		
 		if (w.second) {
 			// TODO - find ("||")
-			int n = sock->write(&l_sendBuf[done], left);  // adguard - https://www.box.net/shared/9201edaa1fa1b83a8d3c
+			int n = sock->write(&l_sendBuf[done], left);  // adguard
 			if (n > 0) {
 				left -= n;
 				done += n;

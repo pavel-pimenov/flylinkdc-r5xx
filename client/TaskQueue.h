@@ -105,7 +105,7 @@ class TaskQueue
 			dcassert(m_lock_count == 0)
 			if (m_destroy_guard == 0 && m_lock_count == 0)
 			{
-				m_tasks.push_back(std::make_pair(type, data)); // [2] https://www.box.net/shared/6hnn9eeg42q1qammnlub
+				m_tasks.push_back(std::make_pair(type, data)); 
 				return true;
 			}
 			else

@@ -3813,14 +3813,12 @@ String Value::Comments::get(CommentPlacement slot) const {
 }
 
 void Value::Comments::set(CommentPlacement slot, String comment) {
-  if (!ptr_) {
+  if (slot >= CommentPlacement::numberOfCommentPlacement)
+    return;
+  if (!ptr_)
     ptr_ = std::unique_ptr<Array>(new Array());
-  }
-  // check comments array boundry.
-  if (slot < CommentPlacement::numberOfCommentPlacement) {
     (*ptr_)[slot] = std::move(comment);
   }
-}
 
 void Value::setComment(String comment, CommentPlacement placement) {
   if (!comment.empty() && (comment.back() == '\n')) {

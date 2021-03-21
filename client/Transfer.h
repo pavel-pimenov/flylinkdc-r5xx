@@ -48,7 +48,7 @@ class Transfer
 		virtual ~Transfer() { }
 		int64_t getPos() const
 		{
-			return m_pos; // [3] https://www.box.net/shared/60b6618fc263e636bb4e
+			return m_pos;
 		}
 		int64_t getStartPos() const
 		{

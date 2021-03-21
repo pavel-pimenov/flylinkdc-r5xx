@@ -208,7 +208,7 @@ void UploadQueueItemInfo::update()
 {
 	setText(COLUMN_FILE, Text::toT(Util::getFileName(getQi()->getFile())));
 	setText(COLUMN_PATH, Text::toT(Util::getFilePath(getQi()->getFile())));
-	setText(COLUMN_NICK, getQi()->getUser()->getLastNickT()); // [1] https://www.box.net/shared/plriwg50qendcr3kbjp5
+	setText(COLUMN_NICK, getQi()->getUser()->getLastNickT()); 
 	setText(COLUMN_HUB, WinUtil::getHubNames(getQi()->getHintedUser()).first);
 	setText(COLUMN_TRANSFERRED, Util::formatBytesW(getQi()->getPos()) + _T(" (") + Util::toStringW((double)getQi()->getPos() * 100.0 / (double)getQi()->getSize()) + _T("%)"));
 	setText(COLUMN_SIZE, Util::formatBytesW(getQi()->getSize()));

@@ -1,3 +1,15 @@
+2.0.20 (31-01-2018)
+- Fixed bug: when used with static CRT there were no handlers for CRT errors (like abort() and so on).
+
+2.0.19 (06-12-2017)
+- Fixed bug: full report not uploaded if additional file added that is inaccessible (sharing violation for example).
+
+2.0.18 (25-02-2016)
+- Changed: only the first crash is reported when more than one thread crashed simultaneously.
+- Fixed bug: when library reinitialized using custom data collection settings with empty UserData custom data collection callback recieves previous UserData value.
+- Fixed bug: report uploaded page may open twice.
+- Minor stability improvements.
+
 2.0.17 (24-05-2015)
 - Added custom data collection callback function that will be called before full report upload.
 - Fixed bug: if UseWER is true WER dialog appeass over report upload windows

@@ -665,7 +665,7 @@ void WinUtil::init(HWND hWnd)
 	file.AppendMenu(MF_STRING, IDC_REFRESH_FILE_LIST, CTSTRING(MENU_REFRESH_FILE_LIST));
 	file.AppendMenu(MF_STRING, IDC_MATCH_ALL, CTSTRING(MENU_OPEN_MATCH_ALL));
 //	file.AppendMenu(MF_STRING, IDC_FLYLINK_DISCOVER, _T("Flylink Discover…"));
-	file.AppendMenu(MF_STRING, IDC_REFRESH_FILE_LIST_PURGE, CTSTRING(MENU_REFRESH_FILE_LIST_PURGE)); // https://www.box.net/shared/cw9agvj2n3fbypdcls46
+	file.AppendMenu(MF_STRING, IDC_REFRESH_FILE_LIST_PURGE, CTSTRING(MENU_REFRESH_FILE_LIST_PURGE)); 
 #ifdef USE_REBUILD_MEDIAINFO
 	file.AppendMenu(MF_STRING, IDC_REFRESH_MEDIAINFO, CTSTRING(MENU_REFRESH_MEDIAINFO));
 #endif
@@ -1392,9 +1392,7 @@ tstring WinUtil::getCommandsList()
 	       _T("\n/shutdown \t\t\t\t") + TSTRING(CMD_SHUTDOWN) +
 	       _T("\n/me \t\t\t\t\t") + TSTRING(CMD_ME) +
 	       _T("\n/winamp, /w (/wmp, /itunes, /mpc, /ja) \t") + TSTRING(CMD_WINAMP) +
-	       // AirDC++
-	       //   _T("\n/spotify, /s \t\t\t") + TSTRING(CMD_SPOTIFY) +
-	       _T("\n/n \t\t\t\t\t") + TSTRING(CMD_REPLACE_WITH_LAST_INSERTED_NICK) + // SSA_SAVE_LAST_NICK_MACROS
+	       _T("\n/n \t\t\t\t\t") + TSTRING(CMD_REPLACE_WITH_LAST_INSERTED_NICK) +
 	       _T("\n------------------------------------------------------------------------------------------------------------------------------------------------------------\n") +
 	       TSTRING(CMD_HELP_INFO) +
 	       _T("\n------------------------------------------------------------------------------------------------------------------------------------------------------------\n")

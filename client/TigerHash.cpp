@@ -204,7 +204,7 @@ void TigerHash::update(const void* data, size_t length)
 			buf[j ^ 7] = ((uint8_t*)str)[j];
 		tiger_compress_macro(((uint64_t*)buf), res);
 #else
-		tiger_compress_macro(((uint64_t*)str), res); // [5] https://www.box.net/shared/56e20a1bb6bfd4f2433f
+		tiger_compress_macro(((uint64_t*)str), res);
 #endif
 		str += BLOCK_SIZE;
 		pos += BLOCK_SIZE;

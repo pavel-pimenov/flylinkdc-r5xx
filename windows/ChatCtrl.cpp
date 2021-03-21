@@ -1061,7 +1061,7 @@ bool ChatCtrl::HitNick(const POINT& p, tstring& sNick, int& iBegin, int& iEnd, c
 		if (!l_client)
 			return false;
 			
-		if (isOnline(l_client, sN)) // [12] https://www.box.net/shared/1e2dd39bf1225b30d0f6
+		if (isOnline(l_client, sN))
 		{
 			sNick = sN;
 			iBegin = lSelBegin + iLeft; //-V104 //-V103
@@ -1246,7 +1246,6 @@ LRESULT ChatCtrl::OnRButtonDown(POINT pt, const UserPtr& user /*= nullptr*/)
 	
 	// hightlight IP or nick when clicking on it
 	if (HitIP(pt, g_sSelectedIP, iBegin, iEnd) || HitNick(pt, g_sSelectedUserName, iBegin, iEnd, user))
-		// [8] https://www.box.net/shared/132998a58df880723a78
 	{
 		SetSel(iBegin, iEnd);
 		InvalidateRect(nullptr);
@@ -1301,7 +1300,7 @@ LRESULT ChatCtrl::onSize(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHan
 			GetSel(l_cr);
 			{
 				SetSel(GetTextLengthEx(GTL_NUMCHARS), -1);
-				ScrollCaret(); // [1] https://www.box.net/shared/qve5a2y5gcg2sopjbpd5
+				ScrollCaret();
 				const DWORD l_go = GetOptions();
 				SetOptions(ECOOP_AND, DWORD(~(ECO_AUTOVSCROLL | ECO_AUTOHSCROLL)));
 				SetSel(l_cr);

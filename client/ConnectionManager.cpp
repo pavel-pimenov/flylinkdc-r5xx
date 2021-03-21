@@ -525,7 +525,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 				{
 					cqi->setLastAttempt(aTick);
 					
-					QueueItem::Priority prio = QueueManager::hasDownload(cqi->getUser()); // [10] https://www.box.net/shared/i6hgw2qzhr9zyy15vhh1
+					QueueItem::Priority prio = QueueManager::hasDownload(cqi->getUser());
 					
 					if (prio == QueueItem::PAUSED)
 					{
@@ -774,8 +774,8 @@ ConnectionManager::Server::Server(bool p_is_secure
 {
 	m_sock.create();
 	m_sock.setSocketOpt(SO_REUSEADDR, 1);
-	m_server_ip   = p_server_ip; // в AirDC++ и дургих этого уже нет
-	m_server_port = m_sock.bind(p_port, p_server_ip); // [7] Wizard https://www.box.net/shared/45acc9cef68ecb499cb5
+	m_server_ip   = p_server_ip;
+	m_server_port = m_sock.bind(p_port, p_server_ip);
 	m_sock.listen();
 	start(64);
 }

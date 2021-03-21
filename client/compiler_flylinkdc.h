@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2017 FlylinkDC++ Team http://flylinkdc.com
+ * Copyright (C) 2011-2021 FlylinkDC++ Team http://flylinkdc.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -311,9 +311,6 @@ typedef unsigned __int64 uint64_t;
 //#define NIGHTORION_USE_STATISTICS_REQUEST
 
 //#define USE_OFFLINE_ICON_FOR_FILELIST  Нужна доработка. // not yet implemented, don't turn on
-
-// SSA_SAVE_LAST_NICK_MACROS нигде не юзается
-// #define SSA_SAVE_LAST_NICK_MACROS //
 
 #define SSA_REMOVE_NEEDLESS_WORDS_FROM_VIDEO_AUDIO_INFO
 #define SSA_NEW_WINAMP_PROC_FOR_TITLE_AND_FILENAME

@@ -3,7 +3,6 @@
 
 /* link this file in with the server and any clients */
 
-
 /* File created by MIDL compiler version 5.01.0164 */
 /* at Thu Dec 14 17:59:54 2006
  */
@@ -137,4 +136,3 @@ const IID IID_IITPlaylistWindow = {0x349CBB45,0x2E5A,0x4822,{0x8E,0x4A,0xA7,0x55
 #ifdef __cplusplus
 }
 #endif
-

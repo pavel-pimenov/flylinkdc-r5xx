@@ -1296,10 +1296,8 @@ extern TransferTreeImage g_TransferTreeImage;
 class FlagImage : public BaseImageList
 {
 	public:
-		uint8_t m_flagImageCount;
-		FlagImage() : m_flagImageCount(0)
-		{
-		}
+		uint8_t m_flagImageCount = 0;
+		FlagImage() {}
 		void init();
 		using BaseImageList::Draw;
 #ifdef FLYLINKDC_USE_GEO_IP
@@ -1740,7 +1738,7 @@ class WinUtil
 		static bool shutDown(int action);
 		static int setButtonPressed(int nID, bool bPressed = true);
 		static void activateMDIChild(HWND hWnd);
-
+		
 #ifdef FLYLINKDC_USE_LIST_VIEW_WATER_MARK
 		static bool setListCtrlWatermark(HWND hListCtrl, UINT nID, COLORREF clr, int width = 128, int height = 128);
 #endif

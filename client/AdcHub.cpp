@@ -329,6 +329,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 				break;
 			}
 			case TAG('U', '4'):
+			case TAG('U', '6'):
 			{
 				id.setUdpPort(Util::toInt(i->substr(2)));
 				break;
@@ -336,11 +337,6 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 			case TAG('I', '6'):
 			{
 				l_ip6 = i->substr(2);
-				break;
-			}
-			case TAG('U', '6'):
-			{
-				id.setUdpPort(Util::toInt(i->substr(2)));
 				break;
 			}
 			case TAG('E', 'M'):

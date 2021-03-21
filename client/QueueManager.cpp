@@ -1480,7 +1480,7 @@ void QueueManager::buildMap(const DirectoryListing::Directory* dir, TTHMap& p_tt
 {
 	for (auto j = dir->directories.cbegin(); j != dir->directories.cend(); ++j)
 	{
-		if (!(*j)->getAdls()) // [1] https://www.box.net/shared/d511d114cb87f7fa5b8d
+		if (!(*j)->getAdls())
 		{
 			buildMap(*j, p_tthMap);
 		}
@@ -1813,7 +1813,7 @@ void QueueManager::setFile(const DownloadPtr& d)
 			if (!File::isExist(qi->getTempTarget()))
 			{
 				// When trying the download the next time, the resume pos will be reset
-                qi->setLastSize(0); // https://github.com/zipper9/blacklink/commit/b27085b74a555cce3804066b9f8e25684800c2a1
+				qi->setLastSize(0); // https://github.com/zipper9/blacklink/commit/b27085b74a555cce3804066b9f8e25684800c2a1
 				throw QueueException(STRING(TARGET_REMOVED));
 			}
 		}

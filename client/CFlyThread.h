@@ -272,7 +272,7 @@ class CriticalSection
 		
 		void log(const char* p_add_info)
 		{
-#ifdef FLYLINKDC_BETA
+#if 0
 			extern bool g_UseCSRecursionLog;
 			if (g_UseCSRecursionLog)
 			{
@@ -313,12 +313,6 @@ class CriticalSection
 			LeaveCriticalSection(&cs);
 			//dcassert(cs.RecursionCount == 0 || (cs.RecursionCount > 0 && tryLock() == true));
 			log("unlock");
-#ifdef FLYLINKDC_BETA
-			extern bool g_UseCSRecursionLog;
-			if (g_UseCSRecursionLog)
-			{
-			}
-#endif
 		}
 		bool tryLock()
 		{
