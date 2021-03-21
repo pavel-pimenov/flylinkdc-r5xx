@@ -146,7 +146,7 @@ File_Riff::File_Riff()
 File_Riff::~File_Riff()
 {
     #ifdef MEDIAINFO_DVDIF_YES
-        delete (File_DvDif*)DV_FromHeader; //DV_FromHeader=NULL // https://www.box.net/shared/916d3a7741f20dccf066
+        delete (File_DvDif*)DV_FromHeader; //DV_FromHeader=NULL
     #endif //MEDIAINFO_DVDIF_YES
 }
 

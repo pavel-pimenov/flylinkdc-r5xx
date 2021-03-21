@@ -46,7 +46,7 @@
 #include "MediaInfo/Multiple/File_Dxw.h"
 #ifdef MEDIAINFO_COMPRESS
     #include "ThirdParty/base64/base64.h"
-    #include "zlib.h"
+    #include "zlib-ng.h"
 #endif //MEDIAINFO_COMPRESS
 #include <cmath>
 #ifdef MEDIAINFO_DEBUG_WARNING_GET
@@ -1424,13 +1424,13 @@ std::bitset<32> MediaInfo_Internal::Open_Buffer_Continue (const int8u* ToAdd, si
             }
             if (zlib)
             {
-                uLongf Output_Size_Max = ToAdd_Size;
+                size_t Output_Size_Max = ToAdd_Size;
                 while (Output_Size_Max)
                 {
                     Output_Size_Max *=16;
                     int8u* Output = new int8u[Output_Size_Max];
-                    uLongf Output_Size = Output_Size_Max;
-                    if (uncompress((Bytef*)Output, &Output_Size, (const Bytef*)ToAdd, (uLong)ToAdd_Size)>=0)
+                    size_t Output_Size = Output_Size_Max;
+                    if (zng_uncompress((Bytef*)Output, &Output_Size, (const Bytef*)ToAdd, (uLong)ToAdd_Size)>=0)
                     {
                         ToAdd=Output;
                         ToAdd_Size=Output_Size;
@@ -1452,7 +1452,7 @@ std::bitset<32> MediaInfo_Internal::Open_Buffer_Continue (const int8u* ToAdd, si
     #endif //MEDIAINFO_COMPRESS
     Info->Open_Buffer_Continue(ToAdd, ToAdd_Size);
 
-    if (Info_IsMultipleParsing && Info->Status[File__Analyze::IsAccepted]) // [crash count = 1] https://www.box.net/shared/a26329f786eca7289a75
+    if (Info_IsMultipleParsing && Info->Status[File__Analyze::IsAccepted])
     {
         //Found
         File__Analyze* Info_ToDelete=Info;
@@ -2181,15 +2181,16 @@ String MediaInfo_Internal::Option (const String &Option, const String &Value)
         }
     #endif //MEDIAINFO_TRACE
     #if MEDIAINFO_ADVANCED
+      #ifdef FLYLINKDC_MEDIAINFO_USE_ZLIB
         if (OptionLower.find(__T("file_inform_stringpointer")) == 0)
         {
             Inform_Cache = Inform(this).To_UTF8();
             #if MEDIAINFO_COMPRESS
                 if (Value.find(__T("zlib"))==0)
                 {
-                    uLongf Compressed_Size=(uLongf)(Inform_Cache.size() + 16);
+                    size_t Compressed_Size=(uLongf)(Inform_Cache.size() + 16);
                     Bytef* Compressed=new Bytef[Inform_Cache.size()+16];
-                    if (compress(Compressed, &Compressed_Size, (const Bytef*)Inform_Cache.c_str(), (uLong)Inform_Cache.size()) < 0)
+                    if (zng_compress(Compressed, &Compressed_Size, (const Bytef*)Inform_Cache.c_str(), (uLong)Inform_Cache.size()) < 0)
                     {
                         delete[] Compressed;
                         return __T("Error during zlib compression");
@@ -2203,6 +2204,7 @@ String MediaInfo_Internal::Option (const String &Option, const String &Value)
             #endif //MEDIAINFO_COMPRESS
             return Ztring::ToZtring((int64u)Inform_Cache.data()) + __T(':') + Ztring::ToZtring((int64u)Inform_Cache.size());
         }
+       #endif // #ifdef FLYLINKDC_MEDIAINFO_USE_ZLIB
     #endif //MEDIAINFO_ADVANCED
     else if (OptionLower.find(__T("reset"))==0)
     {
@@ -2277,13 +2279,13 @@ void MediaInfo_Internal::Event_Prepare (struct MediaInfo_Event_Generic* Event, i
 #endif // MEDIAINFO_EVENTS
 
 //---------------------------------------------------------------------------
+#ifdef FLYLINKDC_USE_MEDIAINFO_INFORM
 Ztring MediaInfo_Internal::Inform(MediaInfo_Internal* Info)
 {
     std::vector<MediaInfoLib::MediaInfo_Internal*> Info2;
     Info2.push_back(Info);
     return MediaInfoLib::MediaInfo_Internal::Inform(Info2);
 }
-
 //---------------------------------------------------------------------------
 Ztring MediaInfo_Internal::Inform(std::vector<MediaInfo_Internal*>& Info)
 {
@@ -2476,6 +2478,7 @@ Ztring MediaInfo_Internal::Inform(std::vector<MediaInfo_Internal*>& Info)
     }
 
     #if MEDIAINFO_COMPRESS
+       #ifdef FLYLINKDC_MEDIAINFO_USE_ZLIB
         bool zlib=MediaInfoLib::Config.FlagsX_Get(Flags_Inform_zlib);
         bool base64=MediaInfoLib::Config.FlagsX_Get(Flags_Inform_base64);
         if (zlib || base64)
@@ -2483,9 +2486,9 @@ Ztring MediaInfo_Internal::Inform(std::vector<MediaInfo_Internal*>& Info)
             string Inform_Cache = Result.To_UTF8();
             if (zlib)
             {
-                uLongf Compressed_Size=(uLongf)(Inform_Cache.size() + 16);
+                size_t Compressed_Size=(uLongf)(Inform_Cache.size() + 16);
                 Bytef* Compressed=new Bytef[Inform_Cache.size()+16];
-                if (compress(Compressed, &Compressed_Size, (const Bytef*)Inform_Cache.c_str(), (uLong)Inform_Cache.size()) < 0)
+                if (zng_compress(Compressed, &Compressed_Size, (const Bytef*)Inform_Cache.c_str(), (uLong)Inform_Cache.size()) < 0)
                 {
                     delete[] Compressed;
                     return __T("Error during zlib compression");
@@ -2498,9 +2501,11 @@ Ztring MediaInfo_Internal::Inform(std::vector<MediaInfo_Internal*>& Info)
             }
             Result.From_UTF8(Inform_Cache);
         }
+      #endif // FLYLINKDC_MEDIAINFO_USE_ZLIB
     #endif //MEDIAINFO_COMPRESS
 
     return Result.c_str();
 }
+#endif
 
 } //NameSpace

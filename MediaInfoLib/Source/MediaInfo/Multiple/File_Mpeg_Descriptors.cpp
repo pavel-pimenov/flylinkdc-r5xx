@@ -1310,7 +1310,7 @@ void File_Mpeg_Descriptors::Data_Parse()
             ELEMENT_CASE(06, "data_stream_alignment");
             ELEMENT_CASE(07, "target_background_grid");
             ELEMENT_CASE(08, "Video_window");
-            ELEMENT_CASE(09, "CA"); // https://www.box.net/shared/39080d69c84064038752
+            ELEMENT_CASE(09, "CA");
             ELEMENT_CASE(0A, "ISO_639_language");
             ELEMENT_CASE(0B, "System_clock");
             ELEMENT_CASE(0C, "Multiplex_buffer_utilization");
@@ -1778,7 +1778,7 @@ void File_Mpeg_Descriptors::Descriptor_09()
                         break;
             case 0x02 : //program_map_section
                         if (elementary_PID_IsValid)
-                        { // https://www.box.net/shared/f2797eae61d9228494f7
+                        { 
                             Complete_Stream->Streams[elementary_PID]->CA_system_ID=CA_system_ID;
                             Complete_Stream->Streams[elementary_PID]->CA_system_ID_MustSkipSlices=Mpeg_Descriptors_CA_system_ID_MustSkipSlices(CA_system_ID);
                             if (CA_PID<Complete_Stream->Streams.size() && Complete_Stream->Streams[CA_PID]->Kind==complete_stream::stream::unknown) //Priority to PES, if this is a PES, we skip the CA
@@ -3024,7 +3024,6 @@ void File_Mpeg_Descriptors::Descriptor_7F_19()
     {
         Element_Begin1("preselection");
         Descriptor_7F_19_Info& Info=Infos[p];
-        int8u preselection_id;
         bool language_code_present, text_label_present, multi_stream_info_present, future_extension;
         Get_S1 (5, Info.preselection_id,                        "preselection_id");
         Get_S1 (3, Info.audio_rendering_indication,             "audio_rendering_indication");
@@ -3401,23 +3400,6 @@ void File_Mpeg_Descriptors::Descriptor_A1()
         //Filling
         if (elementary_PID<Complete_Stream->Streams.size() && Complete_Stream->Streams[elementary_PID]->Infos["Language"].empty()) //We use only the first detected value
             Complete_Stream->Streams[elementary_PID]->Infos["Language"]=Language;
-/*
-https://www.box.net/shared/eb35fbf1f0013537a39f
-r502-beta40 
-Crash mediainfo file: E:\Musik\WEST\VA - Instrumental Lounge 13CD\VA - Instrumental Lounge Vol. 1\18. Calido - El Calor.mp3
-TTH = WHA4W3SZP4VD4OWQ3HW7ZB54TPREZ5UKXTGJ73A
-File size = 13724572
-
-https://www.box.net/shared/2f14fd675a83658996be
-r502-beta40-x64
-Crash mediainfo file: E:\AlexLan\va_house_efs_2012_[tfile.ru]\House EfS 2012\E-Lit - Flipando en Ibiza (Techzone & HAS! Remix).mp3
-TTH = SQZ2RTV22VIEJHMDB4GOTW454XTO3RLWEUZAHSI
-File size = 17284954
-
-Crash mediainfo file: F:\Films [DVD-5]\Сорвиголова\VTS_04_1.VOB
-TTH = QOKUJPUXPJN3KH4UV4EBGP3W2IIR4WI5YPEFM3A
-File size = 826734592
-		*/
     }
 }
 

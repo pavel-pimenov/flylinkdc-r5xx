@@ -23,7 +23,6 @@
 //---------------------------------------------------------------------------
 #include "MediaInfo/Multiple/File_Ibi.h"
 #include "MediaInfo/MediaInfo_Config_MediaInfo.h"
-#include <zlib.h>
 //---------------------------------------------------------------------------
 
 namespace MediaInfoLib

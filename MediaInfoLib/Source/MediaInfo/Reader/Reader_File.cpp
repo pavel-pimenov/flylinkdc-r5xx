@@ -794,7 +794,7 @@ size_t Reader_File::Format_Test_PerParser_Continue (MediaInfo_Internal* MI)
             #endif //MEDIAINFO_DEBUG
 
             //Parser
-            Status=MI->Open_Buffer_Continue(MI->Config.File_Buffer, MI->Config.File_Buffer_Size); // https://www.box.net/shared/7941dd9ab25e5cfb3803
+            Status=MI->Open_Buffer_Continue(MI->Config.File_Buffer, MI->Config.File_Buffer_Size);
 
 #ifdef FLYLINKDC_ZENLIB_USE_THREAD
             #if MEDIAINFO_READTHREAD

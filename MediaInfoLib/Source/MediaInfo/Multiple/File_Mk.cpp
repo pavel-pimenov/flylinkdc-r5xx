@@ -98,7 +98,7 @@
 #include <cstring>
 #include <cmath>
 #include <algorithm>
-#include <zlib.h>
+#include <zlib-ng.h>
 #include "ThirdParty/base64/base64.h"
 #if MEDIAINFO_EVENTS
     #include "MediaInfo/MediaInfo_Events_Internal.h"
@@ -2218,12 +2218,12 @@ bool File_Mk::Rawcooked_Compressed_Start(rawcookedtrack::mask* Mask, bool UseMas
         Element_Offset=Element_Offset_Save;
 
         //Sizes
-        unsigned long Source_Size=(unsigned long)(Element_Size-Element_Offset);
-        unsigned long Dest_Size=(unsigned long)Rawcooked_Compressed_Save_Element_Size;
+        size_t Source_Size=(unsigned long)(Element_Size-Element_Offset);
+        size_t Dest_Size=(unsigned long)Rawcooked_Compressed_Save_Element_Size;
 
         //Uncompressing
         int8u* Dest=new int8u[(Mask && UseMask && Mask->Size>Dest_Size)?Mask->Size:Dest_Size];
-        if (uncompress((Bytef*)Dest, &Dest_Size, (const Bytef*)Buffer+Buffer_Offset+(size_t)Element_Offset, Source_Size)<0)
+        if (zng_uncompress((Bytef*)Dest, &Dest_Size, (const Bytef*)Buffer+Buffer_Offset+(size_t)Element_Offset, Source_Size)<0)
         {
             delete[] Dest; //Dest=NULL;
             Param_Info("Problem during the decompression");
@@ -4866,7 +4866,7 @@ void File_Mk::Segment_Tracks_TrackEntry_Video_Colour_MasteringMetadata_Primary(i
         if (Segment_Info_Count>1)
             return; //First element has the priority
         mastering_metadata_2086& MasteringMetadata=Stream[TrackNumber].MasteringMetadata;
-        int16u& Value=Stream[TrackNumber].MasteringMetadata.Primaries[i];
+        int16u& Value= MasteringMetadata.Primaries[i];
         if (Value==(int16u)-1 && Float>=0 && Float<=1)
             Value=((int16u)float32_int32s(Float*50000));
     FILLING_END();
@@ -4883,7 +4883,7 @@ void File_Mk::Segment_Tracks_TrackEntry_Video_Colour_MasteringMetadata_Luminance
         if (Segment_Info_Count>1)
             return; //First element has the priority
         mastering_metadata_2086& MasteringMetadata=Stream[TrackNumber].MasteringMetadata;
-        int32u& Value=Stream[TrackNumber].MasteringMetadata.Luminance[i];
+        int32u& Value= MasteringMetadata.Luminance[i];
         if (Value==(int32u)-1 && Float<0x8FFFFFFF/10000)
             Value=float32_int32s(Float*10000);
     FILLING_END();

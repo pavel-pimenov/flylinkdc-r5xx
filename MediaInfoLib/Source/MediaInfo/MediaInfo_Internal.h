@@ -82,7 +82,9 @@ public :
     void Close ();
 
     //General information
+#ifdef FLYLINKDC_USE_MEDIAINFO_INFORM
     Ztring  Inform ();
+#endif
 #if defined(MEDIAINFO_TEXT_YES) || defined(MEDIAINFO_HTML_YES) || defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_CSV_YES) || defined(MEDIAINFO_CUSTOM_YES)
     Ztring  Inform (stream_t StreamKind, size_t StreamNumber, bool IsDirect); //All about only a specific stream
 #endif
@@ -108,9 +110,11 @@ public :
 
     //Internal
     static bool LibraryIsModified(); //Is the library has been modified? (#defines...)
+#ifdef FLYLINKDC_USE_MEDIAINFO_INFORM
     static Ztring Inform (MediaInfo_Internal* Info); // Central place for XML headers
     static Ztring Inform (std::vector<MediaInfo_Internal*> &Info); // Central place for XML headers
-
+#endif
+    
 private :
     friend class File_Bdmv;  //Theses classes need access to internal structure for optimization. There is recursivity with theses formats
     friend class File_Cdxa;  //Theses classes need access to internal structure for optimization. There is recursivity with theses formats
@@ -141,6 +145,7 @@ private :
     MediaInfo_Internal &operator =(const MediaInfo_Internal &);
 
     static void ConvertRetour(Ztring& Retour);
+    static void ConvertRetourSCX(Ztring& Retour);
 
     //Open Buffer
     bool Info_IsMultipleParsing;

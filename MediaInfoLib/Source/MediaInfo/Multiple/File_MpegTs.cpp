@@ -856,7 +856,6 @@ void File_MpegTs::Streams_Update_Programs_PerStream(size_t StreamID)
 
                     //Look for PresentationID in descriptor
                     size_t Pos=0;
-                    bool Pos_FoundInID=false;
                     for (;;)
                     {
                         Ztring LookingFor=__T("Presentation")+Ztring::ToZtring(Pos);

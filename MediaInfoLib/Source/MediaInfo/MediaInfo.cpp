@@ -145,11 +145,12 @@ void MediaInfo::Close()
 //***************************************************************************
 
 //---------------------------------------------------------------------------
+#ifdef FLYLINKDC_USE_MEDIAINFO_INFORM
 String MediaInfo::Inform(size_t)
 {
     return MediaInfo_Internal::Inform(Internal);
 }
-
+#endif
 //---------------------------------------------------------------------------
 String MediaInfo::Get(stream_t StreamKind, size_t StreamPos, size_t Parameter, info_t KindOfInfo)
 {

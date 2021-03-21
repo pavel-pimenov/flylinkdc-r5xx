@@ -5,12 +5,6 @@ call build_flylinkdc_x64_2017.bat
 
 if not exist .\compiled\FlylinkDC*.exe goto :builderror
 
-copy FlylinkDC-*-x64-*build-*-*.7z "Y:\ppa-doc\mailru\flylinkdc\x64"
-
-move *-debug-info-*.7z "Y:\ppa-doc\mailru\flylinkdc-src"
-move *-src-*.7z "Y:\ppa-doc\mailru\flylinkdc-src"
-move *.7z "Y:\ppa-doc\mailru\flylinkdc-src"
-
 cd compiled
 call SymRegisterBinaries.bat
 goto:end

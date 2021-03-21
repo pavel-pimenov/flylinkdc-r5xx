@@ -121,7 +121,9 @@ public :
         /// @param Reserved Reserved, do not use
         /// @pre You can change default presentation with Inform_Set()
         /// @return Text with information about the file
+#ifdef FLYLINKDC_USE_MEDIAINFO_INFORM
     String Inform (size_t Reserved=0);
+#endif
 
     //Get
         /// Get a piece of information about a file (parameter is an integer)

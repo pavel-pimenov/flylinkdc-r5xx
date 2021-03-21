@@ -294,8 +294,10 @@ void File_Cdxa::Data_Parse()
     #if MEDIAINFO_TRACE
     if (Config_Trace_Level)
     {
-        if (!MI->Inform().empty())
+#ifdef FLYLINKDC_USE_MEDIAINFO_INFORM
+         if (!MI->Inform().empty())
             Element_Show_Add(MI->Info);
+#endif
     }
     #endif //MEDIAINFO_TRACE
 
