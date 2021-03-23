@@ -83,7 +83,6 @@ void  RangesPage::loadManualP2PGuard()
 	{
 		m_list_box.AddString(Text::toT(l_lines.getTokens()[i]).c_str());
 	}
-	
 }
 
 LRESULT RangesPage::onRemoveP2PManual(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)

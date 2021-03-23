@@ -276,7 +276,7 @@ class Identity
 		int64_t m_bytes_shared;
 	public:
 		bool m_is_real_user_ip_from_hub;
-		bool m_is_p2p_guard_calc;
+		bool m_is_p2p_guard_calc = false;
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		unsigned char m_virus_type;
 		void setVirusType(unsigned char p_virus_type_mask)

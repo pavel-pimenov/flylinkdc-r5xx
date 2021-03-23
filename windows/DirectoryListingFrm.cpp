@@ -501,18 +501,21 @@ FileImage::TypeDirectoryImages DirectoryListingFrame::GetTypeDirectory(const Dir
 	// Проверяем все подпапки в папке
 	for (auto i = dir->directories.cbegin(); i != dir->directories.cend(); ++i)
 	{
-		const string& nameSubDirectory = (*i)->getName();
+		if ((*i)->isDVD())
+		{
+			const string nameSubDirectory = (*i)->getName();
 		
+			// Папка содержащая подпапки VIDEO_TS или AUDIO_TS, является DVD папкой
+			if (FileImage::isDvdFolder(nameSubDirectory))
+			{
+				return FileImage::DIR_DVD; // Папка DVD
+			}
 		// Папка содержащая хотя бы одну папку BDMV, является Blu-ray папкой
 		if (FileImage::isBdFolder(nameSubDirectory))
 		{
 			return FileImage::DIR_BD; // Папка Blu-ray
 		}
 		
-		// Папка содержащая подпапки VIDEO_TS или AUDIO_TS, является DVD папкой
-		if (FileImage::isDvdFolder(nameSubDirectory))
-		{
-			return FileImage::DIR_DVD; // Папка DVD
 		}
 	}
 	

@@ -3819,7 +3819,7 @@ UINT MainFrame::ShowSetupWizard()
 	}
 	catch (Exception & e)
 	{
-		::MessageBox(NULL, Text::toT(e.getError()).c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONERROR); // [1] https://www.box.net/shared/tsdgrjdhgdfjrsz168r7
+		::MessageBox(NULL, Text::toT(e.getError()).c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONERROR);
 		return IDCLOSE;
 	}
 }

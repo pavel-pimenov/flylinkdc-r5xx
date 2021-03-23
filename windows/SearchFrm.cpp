@@ -3098,6 +3098,8 @@ bool SearchFrame::isSkipSearchResult(SearchInfo*& si)
 
 void SearchFrame::addSearchResult(SearchInfo* si)
 {
+	//try
+	//{
 	if (isSkipSearchResult(si))
 		return;
 	const SearchResult& sr = si->m_sr;
@@ -3495,6 +3497,11 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 		m_pausedResults.push_back(si);
 #endif
 	}
+	//}
+	//catch (std::bad_alloc&)
+	//{
+	//	ShareManager::tryFixBadAlloc();
+	//}
 }
 HTREEITEM SearchFrame::add_category(const std::string p_search, const std::string p_group, SearchInfo* p_si,
                                     const SearchResult& p_sr, int p_type_node, HTREEITEM p_parent_node,

@@ -145,7 +145,13 @@ class DirectoryListing : public UserInfoBase
 				void filterList(TTHSet& l);
 				void getHashList(TTHSet& l);
 				void checkDupes(const DirectoryListing* lst);
-				GETSET(string, name, Name);
+				bool isDVD() const
+				{
+					return (name.size() == 4 && name[0] == 'B' && name[1] == 'D') || // "BDMV"
+						    (name.size() == 8 && name[5] == '_' && name[2] == 'D'); //  "VIDEO_TS" "AUDIO_TS"					
+				}
+
+				GETC(string, name, Name);
 				GETSET(Directory*, parent, Parent);
 				GETSET(bool, adls, Adls);
 				GETSET(bool, complete, Complete);

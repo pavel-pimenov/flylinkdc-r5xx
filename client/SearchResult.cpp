@@ -98,7 +98,6 @@ SearchResult::SearchResult(Types aType, int64_t aSize, const string& aFile, cons
 	m_is_virus(false),
 	m_is_tth_check(false),
 	m_token(aToken),
-	m_is_p2p_guard_calc(false),
 	m_virus_level(0),
 	m_is_tth_queue(false)
 {
@@ -120,7 +119,6 @@ SearchResult::SearchResult(const UserPtr& aUser, Types aType, uint8_t aSlots, ui
 	m_is_tth_download(false),
 	m_is_virus(false),
 	m_is_tth_check(false),
-	m_is_p2p_guard_calc(false),
 	m_virus_level(0),
 	m_is_tth_queue(false)
 {

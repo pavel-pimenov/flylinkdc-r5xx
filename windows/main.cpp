@@ -107,6 +107,9 @@ TODO-2 // Добавить атрибуты по mediainfo + что+то еще
 
 crash_rpt::HandlerSettings* GetHandlerSettings()
 {
+#ifndef _WIN64
+#error "r6xx support only x64"
+#endif
 	static TCHAR g_path_sender[MAX_PATH] = {0};
 	static TCHAR g_path_dbhelp[MAX_PATH] = {0};
 	::GetModuleFileName(NULL, g_path_sender, MAX_PATH);
@@ -115,18 +118,10 @@ crash_rpt::HandlerSettings* GetHandlerSettings()
 	if (l_tslash)
 	{
 		l_tslash++;
-#ifdef _WIN64
 		wcscpy(l_tslash, L"sendrpt-x64.exe");
-#else
-		wcscpy(l_tslash, L"sendrpt-x86.exe");
-#endif
 		l_tslash = wcsrchr(g_path_dbhelp, '\\');
 		l_tslash++;
-#ifdef _WIN64
 		wcscpy(l_tslash, L"dbghelp-x64.dll");
-#else
-		wcscpy(l_tslash, L"dbghelp-x86.dll");
-#endif
 	}
 	static crash_rpt::HandlerSettings g_handlerSettings;
 	g_handlerSettings.HandlerSettingsSize = sizeof(g_handlerSettings);
@@ -137,19 +132,12 @@ crash_rpt::HandlerSettings* GetHandlerSettings()
 }
 
 crash_rpt::CrashRpt g_crashRpt(
-#ifdef _WIN64
     L"crashrpt-x64.dll",
-#else
-    L"crashrpt-x86.dll",
-#endif
     GetApplicationInfo(),
     GetHandlerSettings());
 
 #endif
 
-#if 0
-bool g_UseCSRecursionLog = false;
-#endif
 bool g_UseStrongDCTag = false;
 
 CAppModule _Module;

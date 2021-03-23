@@ -147,15 +147,7 @@ class SearchResult : public SearchResultCore
 {
 	public:
 		SearchResult() :
-			m_is_tth_share(false),
-			m_is_tth_download(false),
-			m_is_virus(false),
-			m_is_tth_remembrance(false),
-			m_token(uint32_t (-1)),
-			m_is_tth_check(false),
-			m_is_p2p_guard_calc(false),
-			m_virus_level(0),
-			m_is_tth_queue(false)
+			m_token(uint32_t (-1))
 		{
 		}
 		SearchResult(Types aType, int64_t aSize, const string& aFile, const TTHValue& aTTH, uint32_t aToken);
@@ -201,14 +193,14 @@ class SearchResult : public SearchResultCore
 			return m_token;
 		}
 		
-		bool m_is_tth_share;
-		bool m_is_tth_download;
-		bool m_is_virus;
-		bool m_is_tth_remembrance;
-		bool m_is_tth_queue;
+		bool m_is_tth_share = false;
+		bool m_is_tth_download = false;
+		bool m_is_virus = false;
+		bool m_is_tth_remembrance = false;
+		bool m_is_tth_queue = false;
 		unsigned m_torrent_page = 0;
 		
-		mutable uint8_t m_virus_level;
+		mutable uint8_t m_virus_level = 0;
 		const string& getP2PGuard() const
 		{
 			return m_p2p_guard_text;
@@ -220,12 +212,12 @@ class SearchResult : public SearchResultCore
 		
 		string m_hubName;
 		string m_hubURL;
-		string m_p2p_guard_text;
 		boost::asio::ip::address_v4 m_search_ip4;
 		uint32_t m_token;
 		UserPtr m_user;
-		bool m_is_tth_check;
-		bool m_is_p2p_guard_calc;
+		bool m_is_tth_check = false;
+		string m_p2p_guard_text;
+		bool m_is_p2p_guard_calc = false;
 };
 
 #endif

@@ -257,14 +257,14 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 		{
 			dcassert(attribs.size() >= 3); // Иногда есть Shared - 4-тый атрибут.
 			// это тэг от грея. его тоже можно обработать и записать в TS. хотя там 64 битное время
-			const string& l_name = getAttrib(attribs, g_SName, 0);
+			const string l_name = getAttrib(attribs, g_SName, 0);
 			if (l_name.empty())
 			{
 				dcassert(0);
 				return;
 			}
 			
-			const string& l_s = getAttrib(attribs, g_SSize, 1);
+			const string l_s = getAttrib(attribs, g_SSize, 1);
 			if (l_s.empty())
 			{
 				dcassert(0);
@@ -272,7 +272,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 			}
 			const auto l_size = Util::toInt64(l_s);
 			
-			const string& l_h = getAttrib(attribs, g_STTH, 2);
+			const string l_h = getAttrib(attribs, g_STTH, 2);
 			
 			if (l_h.empty() || (m_is_own_list == false && l_h.compare(0, 39, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", 39) == 0))
 			{
