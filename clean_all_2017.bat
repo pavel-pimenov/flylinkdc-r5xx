@@ -1,3 +1,4 @@
+del msbuild.log
 del *.sdf
 del *.suo
 del .\GdiOle\GdiOle_i.c
@@ -30,4 +31,5 @@ del /S /F /Q compiled\update\*.xml
 del /S /F /Q compiled\update\*.rtf
 del /S /F /Q compiled\update\*.sign
 
-"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.exe" FlylinkDC_2017.sln /Clean "Release|x64"
+rem "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.exe" FlylinkDC_2017.sln /Clean "Release|x64"
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\Common7\IDE\devenv.exe" FlylinkDC_2017.sln /Clean "Release|x64"

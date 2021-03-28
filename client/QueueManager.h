@@ -231,10 +231,6 @@ class QueueManager : public Singleton<QueueManager>,
 		void loadQueue() noexcept;
 		static void saveQueue(bool p_force = false) noexcept;
 		
-#ifdef FLYLINKDC_USE_KEEP_LISTS
-		void noDeleteFileList(const string& path);
-#endif
-		
 		static bool handlePartialSearch(const TTHValue& tth, PartsInfo& _outPartsInfo);
 		bool handlePartialResult(const UserPtr& aUser, const TTHValue& tth, const QueueItem::PartialSource& partialSource, PartsInfo& outPartialInfo);
 		
@@ -454,10 +450,6 @@ class QueueManager : public Singleton<QueueManager>,
 		static int  g_running_count;
 		/** Next search */
 		uint64_t nextSearch;
-#ifdef FLYLINKDC_USE_KEEP_LISTS
-		/** File lists not to delete */
-		StringList protectedFileLists;
-#endif
 		void processList(const string& name, const HintedUser& hintedUser, int flags);
 		
 		void load(const SimpleXML& aXml);

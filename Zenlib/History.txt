@@ -1,3 +1,11 @@
+Version 0.4.39, 2021-03-26
+--------------
++ Threads: avoid critical sections lockers when possible
+x HTTP_Client: Try UTF8 first for network data
+x Threads: call to non thread-safe time related functions (gmtime, localtime) are avoided as much as possible
+x Threads: update non Windows binding (was not complete)
+x Fix crash on some ARMv7 devices
+
 Version 0.4.38, 2020-04-03
 --------------
 + UWP support

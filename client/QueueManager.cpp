@@ -896,21 +896,11 @@ QueueManager::~QueueManager() noexcept
 	m_mover.waitShutdown();
 	rechecker.waitShutdown();
 	saveQueue();
-#ifdef FLYLINKDC_USE_KEEP_LISTS
-	
-	if (!BOOLSETTING(KEEP_LISTS))
-	{
-		std::sort(protectedFileLists.begin(), protectedFileLists.end());
-		StringList filelists = File::findFiles(Util::getListPath(), "*.xml.bz2");
-		if (!filelists.empty())
+//	if (!BOOLSETTING(KEEP_LISTS))
 		{
-			std::sort(filelists.begin(), filelists.end());
-			std::for_each(filelists.begin(),
-			              std::set_difference(filelists.begin(), filelists.end(), protectedFileLists.begin(), protectedFileLists.end(), filelists.begin()),
-			              File::deleteFile);
-		}
+		const StringList filelists = File::findFiles(Util::getListPath(), "*.xml.bz2");
+		std::for_each(filelists.begin(), filelists.end(), File::deleteFile);
 	}
-#endif
 	SharedFileStream::check_before_destoy();
 }
 
@@ -2950,16 +2940,6 @@ void QueueLoader::endTag(const string& name, const string&)
 		}
 	}
 }
-#ifdef FLYLINKDC_USE_KEEP_LISTS
-
-void QueueManager::noDeleteFileList(const string& path)
-{
-	if (!BOOLSETTING(KEEP_LISTS))
-	{
-		protectedFileLists.push_back(path);
-	}
-}
-#endif
 
 // SearchManagerListener
 void QueueManager::on(SearchManagerListener::SR, const std::unique_ptr<SearchResult>& p_sr) noexcept

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2020 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2008-2021 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -69,6 +69,7 @@ void CRYPTO_cbc128_encrypt(const unsigned char *in, unsigned char *out,
         in += 16;
         out += 16;
     }
+    if (ivec != iv)
     memcpy(ivec, iv, 16);
 }
 
@@ -114,6 +115,7 @@ void CRYPTO_cbc128_decrypt(const unsigned char *in, unsigned char *out,
                 out += 16;
             }
         }
+        if (ivec != iv)
         memcpy(ivec, iv, 16);
     } else {
         if (STRICT_ALIGNMENT &&

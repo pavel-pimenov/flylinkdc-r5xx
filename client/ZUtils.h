@@ -22,7 +22,7 @@
 #ifndef DCPLUSPLUS_DCPP_Z_UTILS_H
 #define DCPLUSPLUS_DCPP_Z_UTILS_H
 
-#include <zlib.h>
+#include <zlib-ng.h>
 
 class ZFilter
 {
@@ -41,7 +41,7 @@ class ZFilter
 	public:
 		static bool g_is_disable_compression;
 	private:
-		z_stream zs;
+		zng_stream zs;
 		int64_t totalIn;
 		int64_t totalOut;
 		bool compressing;
@@ -62,7 +62,7 @@ class UnZFilter
 		 */
 		bool operator()(const void* in, size_t& insize, void* out, size_t& outsize);
 	private:
-		z_stream zs;
+		zng_stream zs;
 };
 
 #ifndef _WIN32

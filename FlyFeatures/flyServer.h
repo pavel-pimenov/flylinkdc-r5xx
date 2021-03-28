@@ -32,7 +32,7 @@
 #include "../client/Util.h"
 #include "../client/SettingsManager.h"
 #include "../client/LogManager.h"
-#include "../zlib/zlib.h"
+#include "../zlib-ng/zlib-ng.h"
 #include "libtorrent/sha1_hash.hpp"
 
 namespace sel {

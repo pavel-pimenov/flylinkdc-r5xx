@@ -101,7 +101,7 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			    _T("LevelDB ") _T(LEVELDB_VER) _T("\r\n")
 			    _T("boost ") _T(BOOST_LIB_VERSION) _T("\r\n")
 			    _T("bzip ") _T(BZ_VERSION) _T("\r\n")
-			    _T("zlib ") _T(ZLIB_VERSION) _T("\r\n")
+			    _T("zlib ") _T(ZLIBNG_VERSION) _T("\r\n")
 			    _T("jsoncpp 1.8.3\r\n")
 			    _T("ZenLib 0.4.37\r\n")
 			    _T(OPENSSL_VERSION_TEXT) _T("\r\n")

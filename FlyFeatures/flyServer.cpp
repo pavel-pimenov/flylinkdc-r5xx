@@ -2293,9 +2293,9 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 	{
 		if (p_is_disable_zlib_in == false)
 		{
-			unsigned long l_dest_length = compressBound(p_body.length()) + 2;
+			auto l_dest_length = zng_compressBound(p_body.length()) + 2;
 			l_post_compress_query.resize(l_dest_length);
-			const int l_zlib_result = compress2(l_post_compress_query.data(), &l_dest_length,
+			const auto l_zlib_result = zng_compress2(l_post_compress_query.data(), &l_dest_length,
 			                                    (uint8_t*)p_body.data(),
 			                                    p_body.length(), g_fly_server_config.getZlibCompressLevel());
 			// На клиенте пока жмем по максимуму - нагрузка мелкая.
@@ -2418,11 +2418,11 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 						else
 						{
 							std::vector<unsigned char> l_decompress; // TODO расширять динамически
-							unsigned long l_decompress_size = l_zlib_blob.size() * 10;
+							auto l_decompress_size = l_zlib_blob.size() * 10;
 							l_decompress.resize(l_decompress_size);
 							while (true)
 							{
-								const int l_un_compress_result = uncompress(l_decompress.data(), &l_decompress_size, (uint8_t*)l_zlib_blob.data(), l_zlib_blob.size());
+								const int l_un_compress_result = zng_uncompress(l_decompress.data(), &l_decompress_size, (uint8_t*)l_zlib_blob.data(), l_zlib_blob.size());
 								//l_fly_server_log.step(l_log_string + ", Response: " + Util::toString(l_zlib_blob.size()) + " / " +  Util::toString(l_decompress_size));
 								if (l_un_compress_result == Z_BUF_ERROR)
 								{

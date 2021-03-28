@@ -98,7 +98,7 @@
 #include <cstring>
 #include <cmath>
 #include <algorithm>
-#include <zlib.h>
+#include <zlib-ng.h>
 #include "ThirdParty/base64/base64.h"
 #if MEDIAINFO_EVENTS
     #include "MediaInfo/MediaInfo_Events_Internal.h"

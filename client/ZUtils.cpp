@@ -26,7 +26,7 @@ bool ZFilter::g_is_disable_compression = false;
 ZFilter::ZFilter() : totalIn(0), totalOut(0), compressing(true)
 {
 	memzero(&zs, sizeof(zs));
-	const auto l_result = deflateInit(&zs, SETTING(MAX_COMPRESSION));
+	const auto l_result = zng_deflateInit(&zs, SETTING(MAX_COMPRESSION));
 	if (l_result != Z_OK)
 	{
 		if (l_result == Z_MEM_ERROR)
@@ -43,7 +43,7 @@ ZFilter::~ZFilter()
 #ifdef ZLIB_DEBUG
 	dcdebug("ZFilter end, %ld/%ld = %.04f\n", zs.total_out, zs.total_in, (float)zs.total_out / max((float)zs.total_in, (float)1));
 #endif
-	deflateEnd(&zs);
+	zng_deflateEnd(&zs);
 }
 
 bool ZFilter::operator()(const void* in, size_t& insize, void* out, size_t& outsize)
@@ -65,7 +65,7 @@ bool ZFilter::operator()(const void* in, size_t& insize, void* out, size_t& outs
 		zs.avail_out = outsize;
 		
 		// Starting with zlib 1.2.9, the deflateParams API has changed.
-		auto err = ::deflateParams(&zs, 0, Z_DEFAULT_STRATEGY);
+		auto err = zng_deflateParams(&zs, 0, Z_DEFAULT_STRATEGY);
 #if ZLIB_VERNUM >= 0x1290
 		if (err == Z_STREAM_ERROR)
 		{
@@ -103,7 +103,7 @@ bool ZFilter::operator()(const void* in, size_t& insize, void* out, size_t& outs
 	
 	if (insize == 0)
 	{
-		int err = ::deflate(&zs, Z_FINISH);
+		int err = zng_deflate(&zs, Z_FINISH);
 		if (err != Z_OK && err != Z_STREAM_END)
 			throw Exception(STRING(COMPRESSION_ERROR));
 			
@@ -115,7 +115,7 @@ bool ZFilter::operator()(const void* in, size_t& insize, void* out, size_t& outs
 	}
 	else
 	{
-		int err = ::deflate(&zs, Z_NO_FLUSH);
+		int err = zng_deflate(&zs, Z_NO_FLUSH);
 		if (err != Z_OK)
 			throw Exception(STRING(COMPRESSION_ERROR));
 			
@@ -130,7 +130,7 @@ bool ZFilter::operator()(const void* in, size_t& insize, void* out, size_t& outs
 UnZFilter::UnZFilter()
 {
 	memzero(&zs, sizeof(zs));
-	if (inflateInit(&zs) != Z_OK)
+	if (zng_inflateInit(&zs) != Z_OK)
 		throw Exception(STRING(DECOMPRESSION_ERROR));
 }
 
@@ -139,7 +139,7 @@ UnZFilter::~UnZFilter()
 #ifdef ZLIB_DEBUG
 	dcdebug("UnZFilter end, %ld/%ld = %.04f\n", zs.total_out, zs.total_in, (float)zs.total_out / max((float)zs.total_in, (float)1));
 #endif
-	inflateEnd(&zs);
+	zng_inflateEnd(&zs);
 }
 
 bool UnZFilter::operator()(const void* in, size_t& insize, void* out, size_t& outsize)
@@ -152,7 +152,7 @@ bool UnZFilter::operator()(const void* in, size_t& insize, void* out, size_t& ou
 	zs.avail_out = outsize;
 	zs.next_out = (Bytef*)out;
 	
-	int err = ::inflate(&zs, Z_NO_FLUSH);
+	int err = zng_inflate(&zs, Z_NO_FLUSH);
 	
 	// see zlib/contrib/minizip/unzip.c, Z_BUF_ERROR means we should have padded
 	// with a dummy byte if at end of stream - since we don't do this it's not a real

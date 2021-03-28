@@ -6,7 +6,7 @@ boost
 wtl
 bzip2
 res
-zlib
+zlib-ng
 XMLParser
 Tools
 Tools\*.exe
