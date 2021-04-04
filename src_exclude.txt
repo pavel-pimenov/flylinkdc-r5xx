@@ -103,7 +103,7 @@ compiled/EmoPacks/*
 compiled/WEBserver/*
 P2PGuard.ini
 UpgradeLog*.htm
-changelog-flylinkdc-r5xx-svn.txt
+changelog-flylinkdc-r?xx-svn.txt
 Doxyfile
 commit_update.bat
 FlyUpdate.exe
