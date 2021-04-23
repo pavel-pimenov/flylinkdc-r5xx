@@ -1478,6 +1478,13 @@ bool create_directories(const path& p, system::error_code* ec)
       ec->clear();
     return false;
   }
+  else if (BOOST_UNLIKELY(p_status.type() == status_error))
+  {
+    if (!ec)
+      BOOST_FILESYSTEM_THROW(filesystem_error("boost::filesystem::create_directories", p, local_ec));
+    *ec = local_ec;
+    return false;
+  }
 
   path parent = p.parent_path();
   BOOST_ASSERT_MSG(parent != p, "internal error: p == p.parent_path()");
@@ -1490,13 +1497,18 @@ bool create_directories(const path& p, system::error_code* ec)
     if (parent_status.type() == file_not_found)
     {
       create_directories(parent, local_ec);
-      if (local_ec)
+      if (BOOST_UNLIKELY(!!local_ec))
       {
+      parent_fail_local_ec:
         if (!ec)
           BOOST_FILESYSTEM_THROW(filesystem_error("boost::filesystem::create_directories", parent, local_ec));
         *ec = local_ec;
         return false;
       }
+    }
+    else if (BOOST_UNLIKELY(parent_status.type() == status_error))
+    {
+      goto parent_fail_local_ec;
     }
   }
 
