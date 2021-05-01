@@ -31,20 +31,23 @@
 #include "FlylinkDCKey.h"
 #include "InetDownloaderReporter.h"
 #include "flyServer.h"
+#include "../wtl/atlapp.h"
 
 static const string g_dev_error = "\r\nPlease send a text or a screenshot of the error to developers ppa74@ya.ru";
 static const wstring UPDATE_FILE_NAME = L"flylink.upd";
 
-static const string UPDATE_RELEASE_URL = "http://update.fly-server.ru/update/5xx/release";
-static const string UPDATE_BETA_URL = "http://update.fly-server.ru/update/5xx/beta";
+static string UPDATE_RELEASE_URL = "http://update.fly-server.ru/update/5xx/release";
+static string UPDATE_BETA_URL = "http://update.fly-server.ru/update/5xx/beta";
 
-static const string UPDATE_FILE_DOWNLOAD_B = "Update5_beta.xml";
-static const string UPDATE_SIGN_FILE_DOWNLOAD_B = "Update5_beta.sign";
-static const string UPDATE_DESCRIPTION_B = "Update5_beta.rtf";
+static string UPDATE_FILE_DOWNLOAD_B = "Update5_beta.xml";
+static string UPDATE_SIGN_FILE_DOWNLOAD_B = "Update5_beta.sign";
+static string UPDATE_DESCRIPTION_B = "Update5_beta.rtf";
 
-static const string UPDATE_FILE_DOWNLOAD_R = "Update5.xml";
-static const string UPDATE_SIGN_FILE_DOWNLOAD_R = "Update5.sign";
-static const string UPDATE_DESCRIPTION_R = "Update5.rtf";
+static string UPDATE_FILE_DOWNLOAD_R = "Update5.xml";
+static string UPDATE_SIGN_FILE_DOWNLOAD_R = "Update5.sign";
+static string UPDATE_DESCRIPTION_R = "Update5.rtf";
+
+static string UPDATE_NODE_NAME = "Update5";
 
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
 static const string UPDATE_AU_URL = "http://update.fly-server.ru/update/alluser";
@@ -54,6 +57,34 @@ static const string UPDATE_DESCRIPTION_FILE = "UpdateAU.rtf";
 #endif
 
 bool AutoUpdate::g_exitOnUpdate = false;
+
+static void upgrade5to6(string& p_str)
+{
+	std::replace(p_str.begin(), p_str.end(), '5', '6');
+}
+
+AutoUpdate::AutoUpdate() : m_isUpdateStarted(0), m_isUpdate(false), m_manualUpdate(false), m_mainFrameHWND(nullptr), m_guiDelegate(nullptr)
+{
+	g_exitOnUpdate = false;
+#ifdef _WIN64
+	if (RunTimeHelper::IsVista())
+	{
+		upgrade5to6(UPDATE_RELEASE_URL);
+		upgrade5to6(UPDATE_BETA_URL);
+
+		upgrade5to6(UPDATE_FILE_DOWNLOAD_B);
+		upgrade5to6(UPDATE_SIGN_FILE_DOWNLOAD_B);
+		upgrade5to6(UPDATE_DESCRIPTION_B);
+
+		upgrade5to6(UPDATE_FILE_DOWNLOAD_R);
+		upgrade5to6(UPDATE_SIGN_FILE_DOWNLOAD_R);
+		upgrade5to6(UPDATE_DESCRIPTION_R);
+
+		upgrade5to6(UPDATE_NODE_NAME);
+	}
+#endif
+}
+
 void AutoUpdate::initialize(HWND p_mainFrameHWND, AutoUpdateGUIMethod* p_guiDelegate)
 {
 	m_mainFrameHWND = p_mainFrameHWND;
@@ -162,7 +193,7 @@ int64_t AutoUpdate::checkFilesToNeedsUpdate(AutoUpdateFiles& p_files4Update, Aut
 }
 string AutoUpdate::getUpdateFilesList(const string& p_componentName,
                                       string  p_serverUrl,
-                                      const char*   p_rootNode,
+                                      const string& p_rootNode,
                                       const string& p_file,
                                       const string& p_descr,
                                       unique_ptr<AutoUpdateObject>& p_autoUpdateObject,
@@ -182,16 +213,16 @@ string AutoUpdate::getUpdateFilesList(const string& p_componentName,
 		XMLParser::XMLNode xRootNode = XMLParser::XMLNode::parseString(p_autoUpdateObject->m_update_xml.c_str(), 0, &xRes);
 		if (xRes.error == XMLParser::eXMLErrorNone)
 		{
-			XMLParser::XMLNode update5Node = xRootNode.getChildNode(p_rootNode);
-			dcassert(!update5Node.isEmpty());
-			if (!update5Node.isEmpty())
+			XMLParser::XMLNode updateNode = xRootNode.getChildNode(p_rootNode.c_str());
+			dcassert(!updateNode.isEmpty());
+			if (!updateNode.isEmpty())
 			{
-				p_autoUpdateObject->m_sVersion = update5Node.getAttributeOrDefault("Version");
-				p_autoUpdateObject->m_sUpdateDate = update5Node.getAttributeOrDefault("UpdateDate");
+				p_autoUpdateObject->m_sVersion = updateNode.getAttributeOrDefault("Version");
+				p_autoUpdateObject->m_sUpdateDate = updateNode.getAttributeOrDefault("UpdateDate");
 				// Let's asks for updater....
 				{
 					int i = 0;
-					XMLParser::XMLNode uNode = update5Node.getChildNode("Updater", &i);
+					XMLParser::XMLNode uNode = updateNode.getChildNode("Updater", &i);
 					if (!uNode.isEmpty())
 					{
 						int j = 0;
@@ -205,7 +236,7 @@ string AutoUpdate::getUpdateFilesList(const string& p_componentName,
 				}
 				{
 					int i = 0;
-					XMLParser::XMLNode moduleNode = update5Node.getChildNode("Module", &i);
+					XMLParser::XMLNode moduleNode = updateNode.getChildNode("Module", &i);
 					while (!moduleNode.isEmpty())
 					{
 						AutoUpdateModule module;
@@ -221,13 +252,13 @@ string AutoUpdate::getUpdateFilesList(const string& p_componentName,
 						}
 						p_autoUpdateObject->m_Modules.push_back(module);
 						
-						moduleNode = update5Node.getChildNode("Module", &i);
+						moduleNode = updateNode.getChildNode("Module", &i);
 					}
 				}
 			}
 			else
 			{
-				const string l_error = "update5Node.isEmpty() - send error - ppa74@ya.ru (p_rootNode = [" + string(p_rootNode) + "]";
+				const string l_error = "updateNode.isEmpty() (p_rootNode = [" + string(p_rootNode) + "] " + g_dev_error;
 				CFlyServerJSON::pushError(63, l_error);
 				::MessageBox(m_mainFrameHWND, Text::toT(l_error).c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONERROR);
 			}
@@ -258,13 +289,15 @@ void AutoUpdate::startUpdateThisThread()
 #endif
 		const string l_serverURL = getAUTOUPDATE_SERVER_URL();
 		const string l_serverURL_AU = UPDATE_AU_URL;
-		// TODO - в случае ошибки сделать итерацию и пройтись по зеркалам
 		string l_base_update_url;
 		string l_base_updateAU_url;
 		if (Util::isHttpLink(l_serverURL))
 		{
-			const string programUpdateDescription = getUpdateFilesList(STRING(PROGRAM_FILES), l_serverURL, "Update5",
-			                                                           UPDATE_FILE_DOWNLOAD(), UPDATE_DESCRIPTION(), l_autoUpdateObject,
+			const string programUpdateDescription = getUpdateFilesList(STRING(PROGRAM_FILES),
+				l_serverURL, UPDATE_NODE_NAME,
+			    UPDATE_FILE_DOWNLOAD(), 
+				UPDATE_DESCRIPTION(), 
+				l_autoUpdateObject,
 			                                                           l_base_update_url);
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
 			// TODO - результат не юзается const string basesUpdateDescription =
@@ -973,7 +1006,7 @@ void AutoUpdate::runFlyUpdate()
 		}
 		else
 		{
-			const tstring l_error = TSTRING(AUTOUPDATE_ERROR_START_FLYUPDATE_FAILED) + Text::toT(Util::translateError());
+			const tstring l_error = TSTRING(AUTOUPDATE_ERROR_START_FLYUPDATE_FAILED) + Text::toT(BaseUtil::translateError());
 			CFlyServerJSON::pushError(63, Text::fromT(l_error));
 			MessageBox(nullptr, l_error.c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONERROR);
 		}

@@ -29,7 +29,6 @@ LRESULT CFlyLocationDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 		}
 	};
 	
-	// TODO -- SELECT distinct country FROM fly_country_ip
 	m_ctrlCountry.AddString(_T("Russia"));
 	m_ctrlCountry.SelectString(0, _T("Russia"));
 	m_ctrlCountry.AddString(_T("Belarus"));

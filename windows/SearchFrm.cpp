@@ -26,7 +26,6 @@
 #include "MainFrm.h"
 #include "BarShader.h"
 
-//#include "../client/QueueManager.h"
 #include "../client/SearchQueue.h"
 #include "../client/ClientManager.h"
 #include "../client/DownloadManager.h"
@@ -3500,7 +3499,7 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 	//}
 	//catch (std::bad_alloc&)
 	//{
-	//	ShareManager::tryFixBadAlloc();
+	//  ShareManager::tryFixBadAlloc();
 	//}
 }
 HTREEITEM SearchFrame::add_category(const std::string p_search, const std::string p_group, SearchInfo* p_si,

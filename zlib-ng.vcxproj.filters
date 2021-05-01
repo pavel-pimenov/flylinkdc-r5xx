@@ -1,69 +1,69 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="zlib\adler32.c">
+    <ClCompile Include="zlib-ng\adler32.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\compress.c">
+    <ClCompile Include="zlib-ng\compress.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\crc32.c">
+    <ClCompile Include="zlib-ng\crc32.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\deflate.c">
+    <ClCompile Include="zlib-ng\deflate.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\inffast.c">
+    <ClCompile Include="zlib-ng\inffast.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\inflate.c">
+    <ClCompile Include="zlib-ng\inflate.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\inftrees.c">
+    <ClCompile Include="zlib-ng\inftrees.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\trees.c">
+    <ClCompile Include="zlib-ng\trees.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\uncompr.c">
+    <ClCompile Include="zlib-ng\uncompr.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\zutil.c">
+    <ClCompile Include="zlib-ng\zutil.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="zlib\crc32.h">
+    <ClInclude Include="zlib-ng\crc32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\deflate.h">
+    <ClInclude Include="zlib-ng\deflate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\inffast.h">
+    <ClInclude Include="zlib-ng\inffast.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\inffixed.h">
+    <ClInclude Include="zlib-ng\inffixed.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\inflate.h">
+    <ClInclude Include="zlib-ng\inflate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\inftrees.h">
+    <ClInclude Include="zlib-ng\inftrees.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\trees.h">
+    <ClInclude Include="zlib-ng\trees.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\zconf.h">
+    <ClInclude Include="zlib-ng\zconf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\zlib.h">
+    <ClInclude Include="zlib-ng\zlib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\zutil.h">
+    <ClInclude Include="zlib-ng\zutil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\gzguts.h">
+    <ClInclude Include="zlib-ng\gzguts.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

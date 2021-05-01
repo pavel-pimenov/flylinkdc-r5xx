@@ -30,6 +30,7 @@
 #include "../client/DCPlusPlus.h"
 #include "../client/HintedUser.h"
 #include "../client/CompatibilityManager.h"
+
 #include "UserInfoSimple.h"
 #include "OMenu.h"
 #include "HIconWrapper.h"
@@ -1200,7 +1201,7 @@ struct FileImage : public BaseImageList
 			if (nameFile.length() == 12)
 			{
 				//static const string video_ts = "VIDEO_TS";
-				if (nameFile[0] == 'V' ) // טלÿ פאיכא // && nameFile.compare(0, video_ts.size(), video_ts) == 0
+				if (nameFile[0] == 'V')  // טלÿ פאיכא // && nameFile.compare(0, video_ts.size(), video_ts) == 0
 				{
 					static const string bup = "BUP";
 					static const string ifo = "IFO";
@@ -1523,7 +1524,7 @@ class WinUtil
 #else
 		static std::unique_ptr<HIconWrapper> g_HubVirusIcon;
 #endif
-		static std::unique_ptr<HIconWrapper> g_HubFlylinkDCIconVIP[22]; // VIP_ICON
+		static std::unique_ptr<HIconWrapper> g_HubFlylinkDCIconVIP[24]; // VIP_ICON 
 		
 		static void initThemeIcons();
 		

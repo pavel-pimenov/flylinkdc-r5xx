@@ -142,17 +142,17 @@ void CompatibilityManager::detectOsSupports()
 	        CURRENT_VER(6, 0)) // Windows Vista
 		set(OS_VISTA_PLUS);
 		
+#ifdef FLYLINKDC_USE_CHECK_OLD_OS
 	if (
 	    !CURRENT_VER_SP(6, 0, 2) && // Windows Vista SP2 & Windows Server 2008 SP2 // http://ru.wikipedia.org/wiki/Windows_Vista http://en.wikipedia.org/wiki/Windows_Server_2008
 	    !CURRENT_VER_SP(6, 1, 1) && // Windows 7 SP1 & Windows Server 2008 R2 SP1  http://en.wikipedia.org/wiki/Windows_7 http://en.wikipedia.org/wiki/Windows_Server_2008_R2
-	    !CURRENT_VER_SP(6, 2, 0) &&   // Windows 8 & Windows Server 2012 http://en.wikipedia.org/wiki/Windows_8 http://ru.wikipedia.org/wiki/Windows_Server_2012
-	    !CURRENT_VER_SP(6, 3, 0) &&  // Windows 8.1 & Windows Server 2012 R2 http://en.wikipedia.org/wiki/Windows_8.1 http://ru.wikipedia.org/wiki/Windows_Server_2012
-	    !CURRENT_VER_SP(10, 0, 0)) // https://msdn.microsoft.com/ru-ru/library/windows/desktop/ms724833(v=vs.85).aspx  мануал (ну как и раньше, только дополнен Windows 10/0)
+	    !CURRENT_VER_SP(6, 2, 0) && // Windows 8 & Windows Server 2012 http://en.wikipedia.org/wiki/Windows_8 http://ru.wikipedia.org/wiki/Windows_Server_2012
+	    !CURRENT_VER_SP(6, 3, 0) && // Windows 8.1 & Windows Server 2012 R2 http://en.wikipedia.org/wiki/Windows_8.1 http://ru.wikipedia.org/wiki/Windows_Server_2012
+	    !CURRENT_VER_SP(10, 0, 0))  // https://msdn.microsoft.com/ru-ru/library/windows/desktop/ms724833(v=vs.85).aspx  мануал (ну как и раньше, только дополнен Windows 10/0)
 	{
-#ifdef FLYLINKDC_USE_CHECK_OLD_OS
 		set(RUNNING_AN_UNSUPPORTED_OS);
-#endif
 	}
+#endif
 	
 #undef FUTURE_VER
 #undef FUTURE_MINOR_VER

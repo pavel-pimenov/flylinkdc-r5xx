@@ -138,10 +138,7 @@ class AutoUpdate :
 		
 		friend class Singleton<AutoUpdate>;
 		
-		explicit AutoUpdate() : m_isUpdateStarted(0), m_isUpdate(false), m_manualUpdate(false), m_mainFrameHWND(nullptr), m_guiDelegate(nullptr)
-		{
-			g_exitOnUpdate = false;
-		}
+		explicit AutoUpdate();
 		
 		virtual ~AutoUpdate()
 		{
@@ -176,7 +173,7 @@ class AutoUpdate :
 		bool preparingFiles(const AutoUpdateFiles& p_files, const string& p_path, string& p_errorFileName);
 		string  getUpdateFilesList(const string&  p_componentName,
 		                           string  p_serverUrl, // —сылку не делать!
-		                           const char*   p_rootNode,
+		                           const string& p_rootNode,
 		                           const string& p_file,
 		                           const string& p_descr,
 		                           std::unique_ptr<AutoUpdateObject>& p_autoUpdateObject,
