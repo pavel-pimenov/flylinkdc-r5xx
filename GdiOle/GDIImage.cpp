@@ -252,7 +252,12 @@ VOID CALLBACK CGDIImage::OnTimer(PVOID lpParameter, BOOLEAN TimerOrWaitFired)
 						dcassert(!isShutdown());
 						if (!isShutdown())
 						{
-							CreateTimerQueueTimer(&pGDIImage->m_hTimer, NULL, OnTimer, pGDIImage, dwDelay, 0, WT_EXECUTEDEFAULT); // TODO - разрушать все таймера при стопе
+							const auto res = CreateTimerQueueTimer(&pGDIImage->m_hTimer, NULL, OnTimer, pGDIImage, dwDelay, 0, WT_EXECUTEDEFAULT);
+							if (!res)
+							{
+								dcassert(0);
+								pGDIImage->Release();
+							}
 						}
 					}
 					LeaveCriticalSection(&pGDIImage->m_csCallback);
@@ -282,7 +287,13 @@ void CGDIImage::RegisterCallback(ONFRAMECHANGED pOnFrameChangedProc, LPARAM lPar
 		m_Callbacks.insert(CALLBACK_STRUCT(pOnFrameChangedProc, lParam));
 		if (!m_hTimer && m_allowCreateTimer)  
 		{
-			CreateTimerQueueTimer(&m_hTimer, NULL, OnTimer, this, 0, 0, WT_EXECUTEDEFAULT); // TODO - разрушать все таймера при стопе
+			const auto res = CreateTimerQueueTimer(&m_hTimer, NULL, OnTimer, this, 0, 0, WT_EXECUTEDEFAULT);
+			if (!res)
+			{
+				dcassert(0);
+				Release();
+			}
+
 		}
 		calcStatisticsL();
 		LeaveCriticalSection(&m_csCallback);
