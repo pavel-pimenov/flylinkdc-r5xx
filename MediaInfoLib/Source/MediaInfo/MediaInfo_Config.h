@@ -268,6 +268,10 @@ public :
           void      InitDataNotRepeated_GiveUp_Set (bool Value);
           bool      InitDataNotRepeated_GiveUp_Get ();
     #endif //MEDIAINFO_ADVANCED
+    #if MEDIAINFO_ADVANCED && defined(MEDIAINFO_FILE_YES)
+          void      TimeOut_Set (int64u Value);
+          int64u    TimeOut_Get ();
+    #endif //MEDIAINFO_ADVANCED && defined(MEDIAINFO_FILE_YES)
 
           void      MpegTs_MaximumOffset_Set (int64u Value);
           int64u    MpegTs_MaximumOffset_Get ();
@@ -295,6 +299,13 @@ public :
           void        Format_Profile_Split_Set (bool Value);
           bool        Format_Profile_Split_Get ();
     #endif //MEDIAINFO_ADVANCED
+
+    #if defined(MEDIAINFO_GRAPH_YES) && defined(MEDIAINFO_ADM_YES)
+        void        Graph_Adm_ShowTrackUIDs_Set(bool Value);
+        bool        Graph_Adm_ShowTrackUIDs_Get();
+        void        Graph_Adm_ShowChannelFormats_Set(bool Value);
+        bool        Graph_Adm_ShowChannelFormats_Get();
+    #endif //defined(MEDIAINFO_GRAPH_YES) && defined(MEDIAINFO_ADM_YES)
 
     #if defined(MEDIAINFO_EBUCORE_YES)
           void        AcquisitionDataOutputMode_Set (size_t Value);
@@ -328,6 +339,10 @@ public :
           inline void Log_Send(int8u Type, int8u Severity, int32u MessageCode, const Ztring &Message) {}
           inline void Log_Send(int8u Type, int8u Severity, int32u MessageCode, const char* Message) {}
     #endif //MEDIAINFO_EVENTS
+
+    #if defined(MEDIAINFO_GRAPHVIZ_YES)
+        bool GraphSvgPluginState();
+    #endif //defined(MEDIAINFO_GRAPH_YES)
 
     #if defined(MEDIAINFO_LIBCURL_YES)
           bool      CanHandleUrls();
@@ -377,6 +392,10 @@ private :
         int64u      InitDataNotRepeated_Occurences;
         bool        InitDataNotRepeated_GiveUp;
     #endif //MEDIAINFO_ADVANCED
+    #if MEDIAINFO_ADVANCED && defined(MEDIAINFO_FILE_YES)
+        int64u      TimeOut;
+    #endif //MEDIAINFO_ADVANCED && defined(MEDIAINFO_FILE_YES)
+
     int64u          MpegTs_MaximumOffset;
     int64u          MpegTs_MaximumScanDuration;
     bool            MpegTs_ForceStreamDisplay;
@@ -389,6 +408,10 @@ private :
     #if MEDIAINFO_ADVANCED
         bool        Format_Profile_Split;
     #endif //MEDIAINFO_ADVANCED
+    #if defined(MEDIAINFO_GRAPH_YES) && defined(MEDIAINFO_ADM_YES)
+        bool        Graph_Adm_ShowTrackUIDs;
+        bool        Graph_Adm_ShowChannelFormats;
+    #endif //defined(MEDIAINFO_GRAPH_YES) && defined(MEDIAINFO_ADM_YES)
     #if defined(MEDIAINFO_EBUCORE_YES) || defined(MEDIAINFO_NISO_YES) || MEDIAINFO_ADVANCED
         size_t      AcquisitionDataOutputMode;
         Ztring      ExternalMetadata;

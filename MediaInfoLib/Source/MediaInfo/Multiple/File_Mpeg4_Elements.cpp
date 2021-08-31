@@ -141,6 +141,7 @@ namespace MediaInfoLib
 //---------------------------------------------------------------------------
 static const char* Mpeg4_Meta_Kind(int32u Kind)
 {
+    //QuickTime 2014-02-11, Table 3-5, Well-known data types
     switch (Kind)
     {
         case 0x00 : return "Binary";
@@ -149,8 +150,9 @@ static const char* Mpeg4_Meta_Kind(int32u Kind)
         case 0x03 : return "Mac String";
         case 0x0E : return "Jpeg";
         case 0x15 : return "Signed Integer"; //the size of the integer is derived from the container size
-        case 0x16 : return "Float 32";
-        case 0x17 : return "Float 64";
+        case 0x16 : return "Unsigned Integer"; //the size of the integer is derived from the container size
+        case 0x17 : return "Float 32";
+        case 0x18 : return "Float 64";
         default   : return "";
     }
 }
@@ -1967,9 +1969,9 @@ void File_Mpeg4::mdat_xxxx()
         #endif //MEDIAINFO_DEMUX
         Element_Show();
 
-        #if MEDIAINFO_DEMUX
-            if (!Stream_Temp.IsFilled && Stream_Temp.Parsers[Pos]->Status[IsFilled])
-            {
+        if (!Stream_Temp.IsFilled && Stream_Temp.Parsers[Pos]->Status[IsFilled])
+        {
+            #if MEDIAINFO_DEMUX
                 if (Stream_Temp.StreamKind==Stream_Other) //If this is a TimeCode track
                 {
                     if (((File_Mpeg4_TimeCode*)Stream_Temp.Parsers[Pos])->Pos!=(int32u)-1)
@@ -1982,46 +1984,46 @@ void File_Mpeg4::mdat_xxxx()
                             }
                     }
                 }
+            #endif //MEDIAINFO_DEMUX
 
-                Stream_Temp.IsFilled=true;
+            Stream_Temp.IsFilled=true;
 
-                if (Config->ParseSpeed<1 && !mdat_Pos.empty())
+            if (Config->ParseSpeed<1 && !mdat_Pos.empty())
+            {
+                bool File_Offset_Next_IsValid;
+                int64u File_Offset_Next;
+                if (mdat_Pos_Temp!=mdat_Pos_Max)
                 {
-                    bool File_Offset_Next_IsValid;
-                    int64u File_Offset_Next;
-                    if (mdat_Pos_Temp!=mdat_Pos_Max)
-                    {
-                        File_Offset_Next=mdat_Pos_Temp->Offset;
-                        File_Offset_Next_IsValid=true;
-                    }
-                    else
-                    {
-                        File_Offset_Next=(int64u)-1;
-                        File_Offset_Next_IsValid=false;
-                    }
-                    mdat_pos mdat_Pos_New;
-                    mdat_Pos_Max=mdat_Pos.empty()?NULL:(&mdat_Pos[0]+mdat_Pos.size());
-                    if (!mdat_Pos.empty())
-                    {
-                        for (mdat_Pos_Type* mdat_Pos_Item=&mdat_Pos[0]; mdat_Pos_Item<mdat_Pos_Max; ++mdat_Pos_Item)
-                            if (mdat_Pos_Item->StreamID!=(int32u)Element_Code)
-                                mdat_Pos_New.push_back(*mdat_Pos_Item);
-                    }
-                    mdat_Pos=mdat_Pos_New;
-                    std::sort(mdat_Pos.begin(), mdat_Pos.end(), &mdat_pos_sort);
-                    mdat_Pos_Temp=mdat_Pos.empty()?NULL:&mdat_Pos[0];
-                    mdat_Pos_Max=mdat_Pos_Temp+mdat_Pos.size();
-                    if (File_Offset_Next_IsValid)
-                        for (; mdat_Pos_Temp<mdat_Pos_Max; ++mdat_Pos_Temp)
-                        {
-                            if (mdat_Pos_Temp->Offset>=File_Offset_Next)
-                                break;
-                        }
-                    else
-                        mdat_Pos_Temp=mdat_Pos_Max;
+                    File_Offset_Next=mdat_Pos_Temp->Offset;
+                    File_Offset_Next_IsValid=true;
                 }
+                else
+                {
+                    File_Offset_Next=(int64u)-1;
+                    File_Offset_Next_IsValid=false;
+                }
+                mdat_pos mdat_Pos_New;
+                mdat_Pos_Max=mdat_Pos.empty()?NULL:(&mdat_Pos[0]+mdat_Pos.size());
+                if (!mdat_Pos.empty())
+                {
+                    for (mdat_Pos_Type* mdat_Pos_Item=&mdat_Pos[0]; mdat_Pos_Item<mdat_Pos_Max; ++mdat_Pos_Item)
+                        if (mdat_Pos_Item->StreamID!=(int32u)Element_Code)
+                            mdat_Pos_New.push_back(*mdat_Pos_Item);
+                }
+                mdat_Pos=mdat_Pos_New;
+                std::sort(mdat_Pos.begin(), mdat_Pos.end(), &mdat_pos_sort);
+                mdat_Pos_Temp=mdat_Pos.empty()?NULL:&mdat_Pos[0];
+                mdat_Pos_Max=mdat_Pos_Temp+mdat_Pos.size();
+                if (File_Offset_Next_IsValid)
+                    for (; mdat_Pos_Temp<mdat_Pos_Max; ++mdat_Pos_Temp)
+                    {
+                        if (mdat_Pos_Temp->Offset>=File_Offset_Next)
+                            break;
+                    }
+                else
+                    mdat_Pos_Temp=mdat_Pos_Max;
             }
-        #endif //MEDIAINFO_DEMUX
+        }
 
         //Multiple parsers
         if (Stream_Temp.Parsers.size()>1)
@@ -3195,6 +3197,7 @@ void File_Mpeg4::moov_meta_ilst_xxxx_data()
     int32u Kind, Language;
     Ztring Value;
     Get_B4(Kind,                                                  "Kind"); Param_Info1(Mpeg4_Meta_Kind(Kind));
+    Get_B4(Language,                                            "Language");
 
     //Error detection
     switch (Element_Code_Get(Element_Level-1))
@@ -3212,7 +3215,6 @@ void File_Mpeg4::moov_meta_ilst_xxxx_data()
     switch (Kind)
     {
         case 0x00 : //Binary
-                    Get_B4(Language,                            "Language");
                     switch (Element_Code_Get(Element_Level-1))
                     {
                         case Elements::moov_meta__disk :
@@ -3286,7 +3288,6 @@ void File_Mpeg4::moov_meta_ilst_xxxx_data()
                     }
                     break;
         case 0x01 : //UTF-8
-                    Get_B4(Language,                            "Language");
                     switch (Element_Code_Get(Element_Level-1))
                     {
                         case Elements::moov_meta___day :
@@ -3304,11 +3305,9 @@ void File_Mpeg4::moov_meta_ilst_xxxx_data()
                     Value=__T("UTF-16 encoding not yet supported");
                     break;
         case 0x03 : //Mac String
-                    Get_B4(Language,                            "Language"); //To confirm
                     Get_UTF8(Element_Size-Element_Offset, Value, "Value");
                     break;
         case 0x0D : //JPEG
-                    Get_B4(Language,                            "Language");
                     switch (Element_Code_Get(Element_Level-1))
                     {
                         case Elements::moov_meta__covr :
@@ -3332,7 +3331,6 @@ void File_Mpeg4::moov_meta_ilst_xxxx_data()
                     }
                     break;
         case 0x0E : //PNG
-                    Get_B4(Language,                            "Language");
                     switch (Element_Code_Get(Element_Level-1))
                     {
                         case Elements::moov_meta__covr :
@@ -3357,7 +3355,6 @@ void File_Mpeg4::moov_meta_ilst_xxxx_data()
                     break;
         case 0x15 : //Signed Integer
                     {
-                    Get_B4(Language,                            "Language");
                     switch (Element_Size-Element_Offset)
                     {
                         case 1 : {int8u  ValueI; Get_B1(ValueI, "Value"); Value.From_Number((int8s) ValueI);}; break;
@@ -3368,13 +3365,31 @@ void File_Mpeg4::moov_meta_ilst_xxxx_data()
                     }
                     }
                     break;
-        case 0x16 : //Float 32
-                    Skip_XX(4,                                  "To decode!");
-                    //Value=__T("Float32 encoding not yet supported");
+        case 0x16 : //Unsigned Integer
+                    {
+                    switch (Element_Size-Element_Offset)
+                    {
+                        case 1 : {int8u  ValueI; Get_B1(ValueI, "Value"); Value.From_Number(ValueI);}; break;
+                        case 2 : {int16u ValueI; Get_B2(ValueI, "Value"); Value.From_Number(ValueI);}; break;
+                        case 4 : {int32u ValueI; Get_B4(ValueI, "Value"); Value.From_Number(ValueI);}; break;
+                        case 8 : {int64u ValueI; Get_B8(ValueI, "Value"); Value.From_Number(ValueI);}; break;
+                        default  : Value=__T("Unknown kind of integer value!");
+                    }
+                    }
                     break;
-        case 0x17 : //Float 64
-                    Skip_XX(8,                                  "To decode!");
-                    //Value=__T("Float64 encoding not yet supported");
+        case 0x17 : //Float 32
+                    {
+                    float32 Data;
+                    Get_BF4(Data,                               "Data");
+                    Value.From_Number(Data);
+                    }
+                    break;
+        case 0x18 : //Float 64
+                    {
+                    float64 Data;
+                    Get_BF8(Data,                               "Data");
+                    Value.From_Number(Data);
+                    }
                     break;
         default: Value=__T("Unknown kind of value!");
    }
@@ -3579,6 +3594,8 @@ void File_Mpeg4::moov_meta_ilst_xxxx_data()
                         Fill(Stream_General, 0, "Media/UUID", Value);
                     else if (Parameter=="com.apple.finalcutstudio.media.history.uuid")
                         Fill(Stream_General, 0, "Media/History/UUID", Value);
+                    else if (Parameter=="com.android.capture.fps")
+                        FrameRate_Real=Value;
                     else if (Parameter=="com.universaladid.idregistry")
                     {
                         Fill(Stream_General, 0, "UniversalAdID_Registry", Value);
@@ -7252,7 +7269,7 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxx_sinf_frma()
     Get_C4 (Codec,                                              "data_format");
 
     FILLING_BEGIN();
-        CodecID_Fill(Ztring().From_CC4(Codec), Stream_Video, StreamPos_Last, InfoCodecID_Format_Mpeg4);
+        CodecID_Fill(Ztring().From_CC4(Codec), StreamKind_Last, StreamPos_Last, InfoCodecID_Format_Mpeg4);
     FILLING_END();
 }
 

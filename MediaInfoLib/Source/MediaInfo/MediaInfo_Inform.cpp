@@ -43,6 +43,9 @@
 #if defined(MEDIAINFO_NISO_YES)
 #include "MediaInfo/Export/Export_Niso.h"
 #endif //defined(MEDIAINFO_NISO_YES)
+#if defined(MEDIAINFO_GRAPH_YES)
+#include "MediaInfo/Export/Export_Graph.h"
+#endif //defined(MEDIAINFO_GRAPH_YES)
 
 #include "MediaInfo/MediaInfo_Internal.h"
 #include "MediaInfo/File__Analyze.h"
@@ -59,13 +62,10 @@ namespace MediaInfoLib
 {
 
 //---------------------------------------------------------------------------
-#if defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_XML_YES)
+#if defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_JSON_YES)
 Ztring Xml_Name_Escape_0_7_78 (const Ztring &Name)
 {
     Ztring ToReturn(Name);
-
-    if (ToReturn.operator()(0)>='0' && ToReturn.operator()(0)<='9')
-        ToReturn.insert(0, 1, __T('_'));
     ToReturn.FindAndReplace(__T(" "), __T("_"), 0, Ztring_Recursive);
     ToReturn.FindAndReplace(__T("/"), __T("_"), 0, Ztring_Recursive);
     ToReturn.FindAndReplace(__T("("), Ztring(), 0, Ztring_Recursive);
@@ -86,12 +86,16 @@ Ztring Xml_Name_Escape_0_7_78 (const Ztring &Name)
         else
             ToReturn_Pos++;
     }
+
+    if (ToReturn.operator()(0)>='0' && ToReturn.operator()(0)<='9')
+        ToReturn.insert(0, 1, __T('_'));
+
     if (ToReturn.empty())
         ToReturn="Unknown";
 
     return ToReturn;
 }
-#endif //defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_XML_YES)
+#endif //defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_JSON_YES)
 
 //---------------------------------------------------------------------------
 extern MediaInfo_Config Config;
@@ -216,6 +220,30 @@ Ztring MediaInfo_Internal::Inform()
         if (MediaInfoLib::Config.Inform_Get()==__T("NISO_Z39.87"))
             return Export_Niso().Transform(*this, MediaInfoLib::Config.ExternalMetadata_Get(), MediaInfoLib::Config.ExternalMetaDataConfig_Get());
     #endif //defined(MEDIAINFO_NISO_YES)
+    #if defined(MEDIAINFO_GRAPH_YES)
+        if (MediaInfoLib::Config.Inform_Get()==__T("Graph_Dot"))
+            return Export_Graph().Transform(*this, Export_Graph::Graph_All, Export_Graph::Format_Dot);
+        #if defined(MEDIAINFO_GRAPHVIZ_YES)
+            if (MediaInfoLib::Config.Inform_Get()==__T("Graph_Svg"))
+                return Export_Graph().Transform(*this, Export_Graph::Graph_All, Export_Graph::Format_Svg);
+        #endif //defined(MEDIAINFO_GRAPHVIZ_YES)
+    #endif //defined(MEDIAINFO_GRAPH_YES)
+    #if defined(MEDIAINFO_GRAPH_YES) && defined(MEDIAINFO_AC4_YES)
+        if (MediaInfoLib::Config.Inform_Get()==__T("Graph_Ac4_Dot"))
+            return Export_Graph().Transform(*this, Export_Graph::Graph_Ac4, Export_Graph::Format_Dot);
+        #if defined(MEDIAINFO_GRAPHVIZ_YES)
+            if (MediaInfoLib::Config.Inform_Get()==__T("Graph_Ac4_Svg"))
+                return Export_Graph().Transform(*this, Export_Graph::Graph_Ac4, Export_Graph::Format_Svg);
+        #endif //defined(MEDIAINFO_GRAPHVIZ_YES)
+    #endif //defined(MEDIAINFO_GRAPH_YES) && defined(MEDIAINFO_AC4_YES)
+    #if defined(MEDIAINFO_GRAPH_YES) && defined(MEDIAINFO_MPEGH3DA_YES)
+        if (MediaInfoLib::Config.Inform_Get()==__T("Graph_Mpegh3da_Dot"))
+            return Export_Graph().Transform(*this, Export_Graph::Graph_Mpegh3da, Export_Graph::Format_Dot);
+        #if defined(MEDIAINFO_GRAPHVIZ_YES)
+            if (MediaInfoLib::Config.Inform_Get()==__T("Graph_Mpegh3da_Svg"))
+                return Export_Graph().Transform(*this, Export_Graph::Graph_Mpegh3da, Export_Graph::Format_Svg);
+        #endif //defined(MEDIAINFO_GRAPHVIZ_YES)
+    #endif //defined(MEDIAINFO_GRAPH_YES) && defined(MEDIAINFO_MPEGH3DA_YES)
     #if defined(MEDIAINFO_REVTMD_YES)
         if (MediaInfoLib::Config.Inform_Get()==__T("reVTMD"))
             return __T("reVTMD is disabled due to its non-free licensing."); //return Export_reVTMD().Transform(*this);
@@ -469,7 +497,15 @@ Ztring MediaInfo_Internal::Inform()
     #if defined(MEDIAINFO_JSON_YES)
         if (JSON)
         {
-            Retour=__T("{\n")+Ztring().From_UTF8(To_JSON(*Node_Main, 0, false, false))+__T("\n}");
+            Retour=__T("{\n");
+            Node Node_Version("creatingLibrary");
+            Node_Version.Add_Child("name", Ztring("MediaInfoLib"));
+            Node_Version.Add_Child("version", Ztring(MediaInfo_Version).SubString(__T(" - v"), Ztring()));
+            Node_Version.Add_Child("url", Ztring(__T("http")+(MediaInfoLib::Config.Https_Get()?Ztring(__T("s")):Ztring())+__T("://mediaarea.net/MediaInfo")));
+            Retour+=Ztring().From_UTF8(To_JSON(Node_Version, 0, false, false))+__T(",\n");
+
+            Retour+=Ztring().From_UTF8(To_JSON(*Node_Main, 0, false, false));
+            Retour+=__T("\n}");
             delete Node_Main;
             delete Node_MI;
         }

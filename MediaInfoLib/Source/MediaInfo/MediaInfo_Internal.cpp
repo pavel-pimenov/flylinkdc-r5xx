@@ -63,6 +63,22 @@
         #include <io.h>
     #endif //defined(WINDOWS) && !defined(WINDOWS_UWP) && !defined(__BORLANDC__)
 #endif //MEDIAINFO_ADVANCED
+#if MEDIAINFO_ADVANCED && defined(MEDIAINFO_FILE_YES)
+    #include <limits>
+    #ifdef WINDOWS
+    namespace WindowsNamespace
+    {
+        #include <windows.h>
+        #undef Yield
+        #undef max
+    }
+    #elif defined(_POSIX_PRIORITY_SCHEDULING)
+        #include <sched.h>
+        #include <unistd.h>
+        #include <signal.h>
+    #endif //_POSIX_PRIORITY_SCHEDULING
+    #include <ctime>
+#endif
 using namespace ZenLib;
 using namespace std;
 //---------------------------------------------------------------------------
@@ -818,6 +834,170 @@ static stream_t Text2StreamT(const Ztring& ParameterName, size_t ToRemove)
 }
 
 //***************************************************************************
+// std::cin threaded interface
+//***************************************************************************
+
+#if MEDIAINFO_ADVANCED && defined(MEDIAINFO_FILE_YES)
+#ifdef FLYLINKDC_MEDIAINFO_CIN
+
+class Reader_Cin_Thread;
+set<Reader_Cin_Thread*> ToTerminate;
+CriticalSection ToTerminate_CS;
+
+static void CtrlC_Register();
+static void CtrlC_Unregister();
+
+static void Reader_Cin_Add(Reader_Cin_Thread* Thread)
+{
+    CriticalSectionLocker ToTerminate_CSL(ToTerminate_CS);
+    if (ToTerminate.empty())
+        CtrlC_Register();
+    ToTerminate.insert(Thread);
+}
+
+static void Reader_Cin_Remove(Reader_Cin_Thread* Thread)
+{
+    CriticalSectionLocker ToTerminate_CSL(ToTerminate_CS);
+    ToTerminate.erase(Thread);
+    if (ToTerminate.empty())
+        CtrlC_Unregister();
+}
+
+class Reader_Cin_Thread : public Thread
+{
+public:
+    int8u* Buffer[2];
+    size_t Buffer_Size[2];
+    size_t Buffer_MaxSize;
+    bool   Buffer_Filling;
+    bool   Buffer_Used;
+
+    Reader_Cin_Thread()
+    {
+        Buffer_MaxSize=64*1024;
+        Buffer[0]=new int8u[Buffer_MaxSize];
+        Buffer[1]=new int8u[Buffer_MaxSize];
+        Buffer_Size[0]=0;
+        Buffer_Size[1]=0;
+        Buffer_Filling=false;
+        Buffer_Used=false;
+        Reader_Cin_Add(this);
+    }
+
+    ~Reader_Cin_Thread()
+    {
+        Reader_Cin_Remove(this);
+    }
+
+    void Current(int8u*& Buffer_New, size_t& Buffer_Size_New)
+    {
+        //If the current buffer is full
+        Buffer_New=Buffer[Buffer_Used];
+        Buffer_Size_New=Buffer_Size[Buffer_Used];
+        if (Buffer_Size_New==Buffer_MaxSize)
+            return;
+
+        //Not full, we accept it only if read is finished
+        if (IsRunning())
+            Buffer_Size_New=0;
+    }
+
+    void IsManaged()
+    {
+        Buffer_Size[Buffer_Used]=0;
+        Buffer_Used=!Buffer_Used;
+    }
+
+    void Entry()
+    {
+        while (!IsTerminating())
+        {
+            if (Buffer_Size[Buffer_Filling]==Buffer_MaxSize) //If end of buffer is reached
+            {
+                Buffer_Filling=!Buffer_Filling;
+                while (Buffer_Size[Buffer_Filling]) //Wait for first byte free
+                    Yield(); //TODO: use condition_variable
+                continue; //Check again the condition before next step
+            }
+
+            //Read from stdin
+            int NewChar=getchar();
+            if (NewChar==EOF)
+                break;
+            Buffer[Buffer_Filling][Buffer_Size[Buffer_Filling]++]=(int8u)NewChar; //Fill the new char then increase offset
+        }
+
+        RequestTerminate();
+        while (Buffer_Size[Buffer_Filling])
+            Yield(); //Wait for the all buffer are cleared by the read thread
+    }
+};
+
+static void Reader_Cin_ForceTerminate()
+{
+    CriticalSectionLocker ToTerminate_CSL(ToTerminate_CS);
+    for (set<Reader_Cin_Thread*>::iterator ToTerminate_Item=ToTerminate.begin(); ToTerminate_Item!=ToTerminate.end(); ++ToTerminate_Item)
+        (*ToTerminate_Item)->ForceTerminate();
+    ToTerminate.clear();
+}
+
+static void Reader_Cin_ForceTerminate(Reader_Cin_Thread* Thread)
+{
+    CriticalSectionLocker ToTerminate_CSL(ToTerminate_CS);
+    Thread->ForceTerminate();
+    ToTerminate.erase(Thread);
+}
+
+static void CtrlC_Received()
+{
+    Reader_Cin_ForceTerminate();
+    CtrlC_Unregister();
+}
+
+#ifdef WINDOWS
+static WindowsNamespace::BOOL WINAPI SignalHandler(WindowsNamespace::DWORD SignalType)
+{
+    if (SignalType==CTRL_C_EVENT)
+    {
+        CtrlC_Received();
+        return true;
+    }
+
+    return FALSE;
+}
+
+static void CtrlC_Register()
+{
+    WindowsNamespace::SetConsoleCtrlHandler(SignalHandler, TRUE);
+}
+
+static void CtrlC_Unregister()
+{
+    WindowsNamespace::SetConsoleCtrlHandler(SignalHandler, FALSE);
+}
+
+#else //WINDOWS
+static void SignalHandler(int SignalType)
+{
+    if (SignalType==SIGINT)
+        CtrlC_Received();
+}
+
+static void CtrlC_Register()
+{
+    signal(SIGINT, SignalHandler);
+}
+
+static void CtrlC_Unregister()
+{
+    signal(SIGINT, SIG_DFL);
+}
+#endif //WINDOWS
+#endif // #ifdef FLYLINKDC_USE_MEDIAINFO_THREAD
+
+#endif
+
+//***************************************************************************
 // Constructor/destructor
 //***************************************************************************
 
@@ -1207,7 +1387,8 @@ void MediaInfo_Internal::Entry()
             #endif //MEDIAINFO_NEXTPACKET
         }
     #endif //MEDIAINFO_FILE_YES
-    #if MEDIAINFO_ADVANCED
+#ifdef FLYLINKDC_MEDIAINFO_CIN
+    #if MEDIAINFO_ADVANCED && defined(MEDIAINFO_FILE_YES)
         else if (Config.File_Names[0]==__T("-")
             #if defined(WINDOWS) && !defined(WINDOWS_UWP) && !defined(__BORLANDC__)
                 //&& WaitForSingleObject(GetStdHandle(STD_INPUT_HANDLE), 0) == WAIT_OBJECT_0 //Check if there is something is stdin
@@ -1215,21 +1396,52 @@ void MediaInfo_Internal::Entry()
             #endif //defined(WINDOWS) && !defined(WINDOWS_UWP) && !defined(__BORLANDC__)
             )
         {
-            static const size_t Read_Size=24000; //TODO: tweak this value
-            unsigned char Buffer[Read_Size];
+            Reader_Cin_Thread Cin;
+            Cin.Run();
             Open_Buffer_Init();
+            clock_t LastIn=-1;
+            int64u TimeOut_Temp=MediaInfoLib::Config.TimeOut_Get();
+            int64u TimeOut_Temp2=TimeOut_Temp*CLOCKS_PER_SEC;
+            clock_t TimeOut=(!CLOCKS_PER_SEC || !TimeOut_Temp || TimeOut_Temp2/CLOCKS_PER_SEC==TimeOut_Temp)?((clock_t)TimeOut_Temp2):-1;
+
             for (;;)
             {
-                size_t Buffer_Size = fread(Buffer, 1, Read_Size, stdin);
-                if (!Buffer_Size)
+                int8u* Buffer_New;
+                size_t Buffer_Size_New;
+                Cin.Current(Buffer_New, Buffer_Size_New);
+                if (Buffer_Size_New)
+                {
+                    if (Open_Buffer_Continue(Buffer_New, Buffer_Size_New)[File__Analyze::IsFinished])
+                        break;
+                    Cin.IsManaged();
+                    if (TimeOut!=-1)
+                        LastIn=clock();
+                }
+                else if (Cin.IsExited())
                     break;
-                Open_Buffer_Continue((int8u*)Buffer, Buffer_Size);
-                if (feof(stdin))
-                    break;
+                else
+                {
+                    if (LastIn!=-1)
+                    {
+                        clock_t NewLastIn=clock();
+                        if (NewLastIn-LastIn>=TimeOut)
+                        {
+                            Reader_Cin_ForceTerminate(&Cin);
+                            LastIn=-1;
+                        }
+                    }
+
+                    #ifdef WINDOWS
+                        WindowsNamespace::Sleep(0);
+                    #elif defined(_POSIX_PRIORITY_SCHEDULING)
+                        sched_yield();
+                    #endif //_POSIX_PRIORITY_SCHEDULING
+                }
             }
             Open_Buffer_Finalize();
         }
-    #endif //MEDIAINFO_ADVANCED
+    #endif //MEDIAINFO_ADVANCED && defined(MEDIAINFO_FILE_YES)
+#endif // FLYLINKDC_MEDIAINFO_CIN
 
     Config.State_Set(1);
 }
@@ -1613,10 +1825,10 @@ void MediaInfo_Internal::Close()
 
 #ifdef FLYLINKDC_ZENLIB_USE_THREAD
 
-    if (IsRunning())
+    if (IsRunning() || IsTerminating())
     {
         RequestTerminate();
-        while(IsExited())
+        while(!IsExited())
             Yield();
     }
 #endif // FLYLINKDC_ZENLIB_USE_THREAD
@@ -1679,7 +1891,6 @@ Ztring MediaInfo_Internal::Get(stream_t StreamKind, size_t StreamPos, size_t Par
                 {
                     if (i)
                         Temp+=__T(" / ");
-                    size_t Temp_Size=Temp.size();
                     Temp+=Get(StreamKind2, i, Parameter2, Info_Text);
                 }
                 return (Temp.size()>(Count-1)*3)?Temp:Ztring();
@@ -1701,7 +1912,6 @@ Ztring MediaInfo_Internal::Get(stream_t StreamKind, size_t StreamPos, size_t Par
                 {
                     if (i)
                         Temp+=__T(" / ");
-                    size_t Temp_Size=Temp.size();
                     Temp+=Get(StreamKind2, i, Parameter2, Info_Text);
                 }
                 return (Temp.size()>(Count-1)*3)?Temp:Ztring();
@@ -1722,7 +1932,6 @@ Ztring MediaInfo_Internal::Get(stream_t StreamKind, size_t StreamPos, size_t Par
                 {
                     if (i)
                         Temp+=__T(" / ");
-                    size_t Temp_Size=Temp.size();
                     Temp+=Get(StreamKind2, i, Parameter2, Info_Text);
                     Ztring Hint=Get(StreamKind2, i, File__Analyze::Fill_Parameter(StreamKind2, Generic_CodecID_Hint), Info_Text);
                     if (!Hint.empty())
@@ -1750,7 +1959,6 @@ Ztring MediaInfo_Internal::Get(stream_t StreamKind, size_t StreamPos, size_t Par
                 {
                     if (i)
                         Temp+=__T(" / ");
-                    size_t Temp_Size=Temp.size();
                     Temp+=Get(StreamKind2, i, Parameter2, Info_Text);
                 }
                 return (Temp.size()>(Count-1)*3)?Temp:Ztring();
