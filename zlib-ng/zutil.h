@@ -24,10 +24,6 @@
 #  define Z_REGISTER
 #endif
 
-#ifndef Z_TLS
-#  define Z_TLS
-#endif
-
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
@@ -70,13 +66,17 @@ extern z_const char * const PREFIX(z_errmsg)[10]; /* indexed by 2-zlib_error */
 #define DYN_TREES    2
 /* The three kinds of block type */
 
-#define MIN_MATCH  3
-#define MAX_MATCH  258
-/* The minimum and maximum match lengths */
+#define STD_MIN_MATCH  3
+#define STD_MAX_MATCH  258
+/* The minimum and maximum match lengths mandated by the deflate standard */
+
+#define WANT_MIN_MATCH  4
+/* The minimum wanted match length, affects deflate_quick, deflate_fast, deflate_medium and deflate_slow  */
 
 #define PRESET_DICT 0x20 /* preset dictionary flag in zlib header */
 
 #define ADLER32_INITIAL_VALUE 1 /* initial adler-32 hash value */
+#define CRC32_INITIAL_VALUE   0 /* initial crc-32 hash value */
 
         /* target dependencies */
 
@@ -183,12 +183,16 @@ void Z_INTERNAL   zng_cfree(void *opaque, void *ptr);
 #  define ZSWAP32(q) bswap_32(q)
 #  define ZSWAP64(q) bswap_64(q)
 
-#elif defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
 #  include <sys/endian.h>
 #  define ZSWAP16(q) bswap16(q)
 #  define ZSWAP32(q) bswap32(q)
 #  define ZSWAP64(q) bswap64(q)
-
+#elif defined(__OpenBSD__)
+#  include <sys/endian.h>
+#  define ZSWAP16(q) swap16(q)
+#  define ZSWAP32(q) swap32(q)
+#  define ZSWAP64(q) swap64(q)
 #elif defined(__INTEL_COMPILER)
 /* ICC does not provide a two byte swap. */
 #  define ZSWAP16(q) ((((q) & 0xff) << 8) | (((q) & 0xff00) >> 8))
@@ -200,14 +204,14 @@ void Z_INTERNAL   zng_cfree(void *opaque, void *ptr);
 #  define ZSWAP32(q) ((((q) >> 24) & 0xff) + (((q) >> 8) & 0xff00) + \
                      (((q) & 0xff00) << 8) + (((q) & 0xff) << 24))
 #  define ZSWAP64(q)                           \
-          ((q & 0xFF00000000000000u) >> 56u) | \
+         (((q & 0xFF00000000000000u) >> 56u) | \
           ((q & 0x00FF000000000000u) >> 40u) | \
           ((q & 0x0000FF0000000000u) >> 24u) | \
           ((q & 0x000000FF00000000u) >> 8u)  | \
           ((q & 0x00000000FF000000u) << 8u)  | \
           ((q & 0x0000000000FF0000u) << 24u) | \
           ((q & 0x000000000000FF00u) << 40u) | \
-          ((q & 0x00000000000000FFu) << 56u)
+          ((q & 0x00000000000000FFu) << 56u))
 #endif
 
 /* Only enable likely/unlikely if the compiler is known to support it */
@@ -247,8 +251,10 @@ void Z_INTERNAL   zng_cfree(void *opaque, void *ptr);
 #  include "arch/x86/x86.h"
 #elif defined(ARM_FEATURES)
 #  include "arch/arm/arm.h"
-#elif defined(POWER_FEATURES)
+#elif defined(PPC_FEATURES) || defined(POWER_FEATURES)
 #  include "arch/power/power.h"
+#elif defined(S390_FEATURES)
+#  include "arch/s390/s390.h"
 #endif
 
 #endif /* ZUTIL_H_ */

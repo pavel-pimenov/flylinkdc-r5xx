@@ -69,6 +69,21 @@
     <ClCompile Include="zlib-ng\zutil.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="zlib-ng\deflate_stored.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib-ng\deflate_huff.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib-ng\deflate_rle.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib-ng\slide_hash.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib-ng\insert_string_roll.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="zlib-ng\adler32_p.h">

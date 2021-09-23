@@ -4,8 +4,8 @@
  */
 
 #include "zbuild.h"
-#include "zutil.h"
 #include "zutil_p.h"
+#include "zutil.h"
 
 z_const char * const PREFIX(z_errmsg)[10] = {
     (z_const char *)"need dictionary",     /* Z_NEED_DICT       2  */
@@ -21,7 +21,7 @@ z_const char * const PREFIX(z_errmsg)[10] = {
 };
 
 const char zlibng_string[] =
-    " zlib-ng 2.0.2 forked from zlib";
+    " zlib-ng 2.1.0.devel forked from zlib";
 
 #ifdef ZLIB_COMPAT
 const char * Z_EXPORT zlibVersion(void) {
@@ -101,11 +101,11 @@ const char * Z_EXPORT PREFIX(zError)(int err) {
 }
 
 void Z_INTERNAL *zng_calloc(void *opaque, unsigned items, unsigned size) {
-    (void)opaque;
+    Z_UNUSED(opaque);
     return zng_alloc((size_t)items * (size_t)size);
 }
 
 void Z_INTERNAL zng_cfree(void *opaque, void *ptr) {
-    (void)opaque;
+    Z_UNUSED(opaque);
     zng_free(ptr);
 }
