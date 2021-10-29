@@ -860,7 +860,7 @@ void NmdcHub::connectToMeParse(const string& param)
 				}
 				else
 				{
-					send("$ConnectToMe " + senderNick + ' ' + getLocalIp() + ':' + Util::toString(m_client_sock->getLocalPort()) + (secure ? "RS|" : "R|"));
+					send("$ConnectToMe " + fromUtf8(senderNick) + ' ' + getLocalIp() + ':' + Util::toString(m_client_sock->getLocalPort()) + (secure ? "RS|" : "R|"));
 				}
 				break;
 			}
