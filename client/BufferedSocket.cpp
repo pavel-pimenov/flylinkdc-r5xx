@@ -17,6 +17,10 @@
  */
 
 #include "stdinc.h"
+#ifdef _DEBUG
+#include <fstream>
+#endif
+
 #include "ZUtils.h"
 #include "ThrottleManager.h"
 #include "IpGuard.h"

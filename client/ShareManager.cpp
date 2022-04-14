@@ -18,6 +18,10 @@
 
 #include "stdinc.h"
 
+#ifdef _DEBUG
+#include <fstream>
+#endif
+
 #include <list>
 
 #include "ShareManager.h"

@@ -15,9 +15,6 @@
     <ClCompile Include="zlib-ng\chunkset.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="zlib-ng\compare258.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="zlib-ng\compress.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -82,6 +79,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="zlib-ng\insert_string_roll.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib-ng\crc32_fold.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib-ng\cpu_features.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib-ng\compare256.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -162,6 +168,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="zlib-ng\zutil_p.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zlib-ng\cpu_features.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

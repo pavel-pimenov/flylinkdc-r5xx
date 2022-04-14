@@ -13,10 +13,12 @@
   <ItemGroup>
     <ClCompile Include="zlib-ng\adler32.c" />
     <ClCompile Include="zlib-ng\chunkset.c" />
-    <ClCompile Include="zlib-ng\compare258.c" />
+    <ClCompile Include="zlib-ng\compare256.c" />
     <ClCompile Include="zlib-ng\compress.c" />
+    <ClCompile Include="zlib-ng\cpu_features.c" />
     <ClCompile Include="zlib-ng\crc32.c" />
     <ClCompile Include="zlib-ng\crc32_comb.c" />
+    <ClCompile Include="zlib-ng\crc32_fold.c" />
     <ClCompile Include="zlib-ng\deflate.c" />
     <ClCompile Include="zlib-ng\deflate_fast.c" />
     <ClCompile Include="zlib-ng\deflate_huff.c" />
@@ -40,6 +42,7 @@
   <ItemGroup>
     <ClInclude Include="zlib-ng\adler32_p.h" />
     <ClInclude Include="zlib-ng\chunkset_tpl.h" />
+    <ClInclude Include="zlib-ng\cpu_features.h" />
     <ClInclude Include="zlib-ng\crc32_comb_tbl.h" />
     <ClInclude Include="zlib-ng\crc32_p.h" />
     <ClInclude Include="zlib-ng\crc32_tbl.h" />
@@ -79,13 +82,13 @@
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
